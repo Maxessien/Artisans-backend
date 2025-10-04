@@ -32,7 +32,7 @@ app.use("/user", userRoutes);
 app.use("/product", productRoutes);
 app.use("/category", categoriesRoutes);
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 5050;
 
 //connect to mongoose db
 connectDB();

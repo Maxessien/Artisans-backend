@@ -19,5 +19,6 @@ router.post("/uploads", userAuthMiddleware, upload.single("profilePhoto"), uploa
 router.get("/uploads/delete", userAuthMiddleware, deleteUserProfilePhoto);
 router.post("/cart/add", userAuthMiddleware, addToCart)
 router.delete("/cart/remove", userAuthMiddleware, deleteFromCart)
+router.get("/verify", userAuthMiddleware, (req, res)=>res.status(200).json(req.auth))
 
 export default router;
