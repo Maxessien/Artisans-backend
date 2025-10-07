@@ -127,14 +127,15 @@ const deleteUserProfilePhoto = async (req, res) => {
 };
 
 const setLoggedInUserCookie = async(req, res)=>{
+	const isDevelopment = process.env.NODE_ENV==="development"
   try {
 	console.log(req.body)
     res.cookie("lasu-mart-auth-token", req.body.idToken, {
       maxAge: 1000*60*60,
       path: "/",
       httpOnly: true,
-	secure: false,
-      sameSite: "lax"
+	secure: !isDevelopment,
+      sameSite: isDevelopment ? "lax" : "none"
     })
     res.status(200).json({message: "Cookie set successfully"})
   } catch (err) {

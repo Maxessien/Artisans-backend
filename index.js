@@ -57,12 +57,12 @@ try {
   });
   const dbStore = await Product.insertMany(newArray);
   const count = await Product.countDocuments()
+  console.log(dbStore[0].createdAt, "hello");
   const user = await auth.getUserByEmail("essienmax484@gmail.com")
   if(process.env.NODE_ENV==="development"){
     await auth.deleteUser(user.uid)
   }
   console.log(count)
-  console.log(dbStore[0].createdAt, "hello");
 } catch (err) {
   console.log(err);
 }
