@@ -3,6 +3,7 @@ import {
   createUser,
   deleteUserProfilePhoto,
   getUser,
+  setLoggedInUserCookie,
   updateUser,
   uploadUserProfilePhoto,
 } from "../controllers/userControllers.js";
@@ -20,5 +21,6 @@ router.get("/uploads/delete", userAuthMiddleware, deleteUserProfilePhoto);
 router.post("/cart/add", userAuthMiddleware, addToCart)
 router.delete("/cart/remove", userAuthMiddleware, deleteFromCart)
 router.get("/verify", userAuthMiddleware, (req, res)=>res.status(200).json(req.auth))
+router.post("/set-cookie", userAuthMiddleware, setLoggedInUserCookie)
 
 export default router;

@@ -30,7 +30,7 @@ const createUser = async (req, res) => {
 const getUser = async (req, res) => {
   console.log("fetting");
   try {
-    const uid = req.query.uid;
+    const uid = req.auth.uid;
     const user = await User.findOne({ userId: uid }).lean();
     if (!user) throw new Error("User not found");
     const populatedCart = await populateUserCart(user.cart);
@@ -126,10 +126,28 @@ const deleteUserProfilePhoto = async (req, res) => {
   }
 };
 
+const setLoggedInUserCookie = async(req, res)=>{
+  try {
+	console.log(req.body)
+    res.cookie("lasu-mart-auth-token", req.body.idToken, {
+      maxAge: 1000*60*60,
+      path: "/",
+      httpOnly: true,
+	secure: false,
+      sameSite: "lax"
+    })
+    res.status(200).json({message: "Cookie set successfully"})
+  } catch (err) {
+    console.log(err)
+    res.status(500).json({message: "Server error"})
+  }
+}
+
 export {
   createUser,
   updateUser,
   uploadUserProfilePhoto,
   deleteUserProfilePhoto,
   getUser,
+  setLoggedInUserCookie,
 };
