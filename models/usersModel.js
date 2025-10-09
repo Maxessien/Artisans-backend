@@ -7,7 +7,7 @@ const userSchema = new Schema(
     userId: { type: String, required: true },
     profilePicture: {
       url: { type: String, required: true, default: "default" },
-      publicId: { type: String, required: true, default: "default" },
+      publicId: { type: String, required: true, default: "default", select: false },
     },
     email: { type: String },
     phoneNumber: { type: String },
@@ -28,6 +28,8 @@ const userSchema = new Schema(
       required: true,
       enum: ["user", "admin", "vendor"],
       default: "user",
+      select: false,
+      immutable: true
     },
     following: { type: Array, required: true, default: [] },
     wishlist: { type: Array, required: true, default: [] },

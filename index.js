@@ -59,7 +59,7 @@ try {
   const count = await Product.countDocuments()
   console.log(dbStore[0].createdAt, "hello");
   const user = await auth.getUserByEmail("essienmax484@gmail.com")
-  if(process.env.NODE_ENV==="development"){
+  if(user){
     await auth.deleteUser(user.uid)
   }
   console.log(count)

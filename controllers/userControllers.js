@@ -63,19 +63,17 @@ const updateUser = async (req, res) => {
 };
 
 const uploadUserProfilePhoto =
-  (type = "upload") =>
+  () =>
   async (req, res) => {
     console.log("Visited upload");
     try {
-      let profilePhotoDb;
-      if (type === "update") {
-        profilePhotoDb = await User.findOne({ userId: req.auth.uid }).select(
+       const profilePhotoDb = await User.findOne({ userId: req.auth.uid }).select(
           "profilePicture"
         );
-      }
+        const isUpdate = profilePhotoDb?.profilePicture.url !== "default_public_id"
       const uploadedImage = await uploader.upload(req.file.path, {
         folder:
-          profilePhotoDb?.profilePicture.publicId ||
+          isUpdate ? profilePhotoDb?.profilePicture.publicId :
           "lasu_mart/user_profile_photos",
       });
       const storedInDb = await User.findOneAndUpdate(
@@ -130,7 +128,7 @@ const setLoggedInUserCookie = async(req, res)=>{
 	const isDevelopment = process.env.NODE_ENV==="development"
   try {
 	console.log(req.body)
-    res.cookie("lasu-mart-auth-token", req.body.idToken, {
+    res.cookie("userSessionToken", req.body.idToken, {
       maxAge: 1000*60*60,
       path: "/",
       httpOnly: true,
