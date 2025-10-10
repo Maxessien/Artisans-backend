@@ -3,9 +3,11 @@ import { model, Schema } from "mongoose";
 const orderSchema = new Schema({
     orderId: {type: String, required: true, unique: true},
     productId: {type: String, required: true},
+    name: {type: String, required: true},
+    price: {type: Number, required: true},
     vendorId: {type: String, required: true},
     quantityOrdered: {type: Number, required: true, default: 1},
-    orderStatus: {type: String, enum: ["pending", "completed"], required: true},
+    paymentStatus: {type: String, enum: ["pending", "completed"], required: true},
     deliveryStatus: {type: String, enum: ["pending", "delivered", "active"], required: true},
     userId: {type: String, required: true},
     address: {type: String, required: true},

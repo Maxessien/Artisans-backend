@@ -22,7 +22,7 @@ const userSchema = new Schema(
       required: true,
       default: [],
     },
-    recentOrders: { type: Array, default: [] },
+    orderHistory: { type: Array, default: [] },
     role: {
       type: String,
       required: true,

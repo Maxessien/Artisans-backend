@@ -46,4 +46,16 @@ const deleteFromCart = async (req, res) => {
   }
 };
 
-export { addToCart, deleteFromCart };
+const getOrderHistory = async(req, res)=>{
+  try{
+    const user = await User.findOne({userId: req.auth.uid}).select("orderHistory").lean()
+	console.log(user, "userrrr")
+    const orders = await User.find({orderId: {$in: user.orderHistory}}).lean()
+    return res.status(200).json(orders)
+  }catch(err){
+    console.log(err)
+    return res.status(500).json({message: "Server error"})
+  }
+}
+
+export { addToCart, deleteFromCart, getOrderHistory };

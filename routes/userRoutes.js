@@ -6,10 +6,10 @@ import {
   setLoggedInUserCookie,
   updateUser,
   uploadUserProfilePhoto,
-} from "../controllers/userControllers.js";
+} from "../controllers/userAuthControllers.js";
 import { userAuthMiddleware } from "../middlewares/userAuthMiddleware.js";
 import { upload } from "../utils/usersUtilFns.js";
-import { addToCart, deleteFromCart } from "../controllers/userCartControllers.js";
+import { addToCart, deleteFromCart, getOrderHistory } from "../controllers/userDataControllers.js";
 
 const router = express.Router();
 
@@ -22,5 +22,5 @@ router.post("/cart/add", userAuthMiddleware, addToCart)
 router.delete("/cart/remove", userAuthMiddleware, deleteFromCart)
 router.get("/verify", userAuthMiddleware, (req, res)=>res.status(200).json(req.auth))
 router.post("/set-cookie", userAuthMiddleware, setLoggedInUserCookie)
-
+router.get("/orders", userAuthMiddleware, getOrderHistory)
 export default router;
