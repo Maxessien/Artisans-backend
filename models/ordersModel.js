@@ -1,21 +1,41 @@
 import { model, Schema } from "mongoose";
+import crypto from "crypto";
 
-const orderSchema = new Schema({
-    orderId: {type: String, required: true, unique: true},
-    productId: {type: String, required: true},
-    name: {type: String, required: true},
-    price: {type: Number, required: true},
-    vendorId: {type: String, required: true},
-    quantityOrdered: {type: Number, required: true, default: 1},
-    paymentStatus: {type: String, enum: ["pending", "completed"], required: true},
-    deliveryStatus: {type: String, enum: ["pending", "delivered", "active"], required: true},
-    userId: {type: String, required: true},
-    address: {type: String, required: true},
+const orderSchema = new Schema(
+  {
+    orderId: {
+      type: String,
+      required: true,
+      unique: true,
+      default: () => crypto.randomUUID(),
+    },
+    productId: { type: String, required: true },
+    name: { type: String, required: true },
+    price: { type: Number, required: true },
+    variant: {type: String},
+    vendorId: { type: String, required: true },
+    quantityOrdered: { type: Number, required: true, default: 1 },
+    paymentStatus: {
+      type: String,
+      enum: ["pending", "completed", "incomplete"],
+      required: true,
+      default: "pending"
+    },
+    deliveryStatus: {
+      type: String,
+      enum: ["pending", "delivered", "active", "cancelled"],
+      required: true,
+      default: "pending"
+    },
+    userId: { type: String, required: true },
+    address: { type: String, required: true },
     customerContactInfo: {
-    email: { type: String, unique: true },
-    phone: { type: String, unique: true },
+      email: { type: String },
+      phone: { type: String, required: true },
+    },
+    paymentMethod: { type: String, required: true, enum: ["online", "delivery"] },
   },
-    paymentStatus: {type: String, required: true},
-}, {timeStamp: true})
+  { timeStamp: true }
+);
 
-export const Order = model("Order", orderSchema)
+export const Order = model("Order", orderSchema);

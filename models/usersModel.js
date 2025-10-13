@@ -15,7 +15,7 @@ const userSchema = new Schema(
       type: [
         {
           productId:  {type: String, required: true},
-          variant: String,
+          variant: {type: String},
           quantity: { type: Number, default: 1 },
         },
       ],

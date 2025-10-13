@@ -1,4 +1,5 @@
 import { model, Schema } from "mongoose";
+import crypto from "crypto"
 
 const productSchema = new Schema(
   {
@@ -6,7 +7,7 @@ const productSchema = new Schema(
     price: { type: Number, required: true },
     discountPrice: { type: Number, required: true, default: 0 },
     imageUrl: { type: String, required: true },
-    productId: { type: String, required: true },
+    productId: { type: String, required: true, default: ()=>crypto.randomUUID() },
     category: { type: Array, required: true },
     productReviews: { type: Array, required: true, default: [] },
     vendorId: { type: String, required: true },

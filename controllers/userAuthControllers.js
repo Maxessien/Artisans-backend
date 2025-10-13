@@ -47,12 +47,15 @@ const updateUser = async (req, res) => {
     if (!req.query?.type || req.query?.type !== "dbOnly") {
       const user = await auth.updateUser(req.auth.uid, req.body);
     }
-    const updatedUser = await User.findOneAndUpdate(
-      { userId: req.auth.uid },
-      req.body,
-      { new: true }
-    ).lean();
-    return res.status(201).json({ ...updatedUser });
+    if(!req.query?.type || req.query?.type !== "authOnly"){
+      const updatedUser = await User.findOneAndUpdate(
+        { userId: req.auth.uid },
+        req.body,
+        { new: true }
+      ).lean();
+      return res.status(200).json({ ...updatedUser });
+    }
+    return res.status(200).json({message: "Update Successful"})
   } catch (err) {
     const errorMessage = findError(err.code);
     console.log(errorMessage);

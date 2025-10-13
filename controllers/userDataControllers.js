@@ -1,4 +1,5 @@
 import { User } from "../models/usersModel.js";
+import { Order } from "../models/ordersModel.js";
 import { populateUserCart } from "../utils/usersUtilFns.js";
 
 const addToCart = async (req, res) => {
@@ -48,9 +49,8 @@ const deleteFromCart = async (req, res) => {
 
 const getOrderHistory = async(req, res)=>{
   try{
-    const user = await User.findOne({userId: req.auth.uid}).select("orderHistory").lean()
-	console.log(user, "userrrr")
-    const orders = await User.find({orderId: {$in: user.orderHistory}}).lean()
+    const orders = await Order.find({userId: {$in: req.auth.uid}}).lean()
+	console.log(orders)
     return res.status(200).json(orders)
   }catch(err){
     console.log(err)
