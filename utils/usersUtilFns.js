@@ -2,12 +2,13 @@ import fs from "fs"
 import path from "path"
 import multer from "multer";
 import { Product } from "../models/productsModel.js";
+import { AuthOtp } from "../models/authOtpModel.js";
 
-export const upload = multer({ dest: "uploads" });
+const upload = multer({ dest: "uploads" });
 
-export const cleanUpStorage = ()=>{
+const cleanUpStorage = ()=>{
     try {
-        const relPath = path.join(__dirname, "uploads")
+        const relPath = path.join(__dirname__, "uploads")
         fs.unlinkSync(relPath)
     } catch (err) {
         console.log(err)
@@ -15,7 +16,7 @@ export const cleanUpStorage = ()=>{
     }
 }
 
-export const populateUserCart = async(userCart)=>{
+const populateUserCart = async(userCart)=>{
     try {
         console.log(userCart)
         if(!userCart || userCart?.length <= 0) return []
@@ -35,3 +36,16 @@ export const populateUserCart = async(userCart)=>{
         throw err
     }
 }
+
+const generateOtp = async(type, value)=>{
+    try{
+        const {value} = await AuthOtp.create({otpType: type, reciever: value})
+        return value
+    }catch(err){
+        console.log(err)
+        throw err
+    }
+}
+
+
+export {upload, cleanUpStorage, populateUserCart, generateOtp}

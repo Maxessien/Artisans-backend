@@ -13,7 +13,7 @@ const getCategories = async(req, res)=>{
 
 const addCategory = async(req, res)=>{
     try {
-        await Category.insertOne({name: req.body.newCategory})
+        await Category.create({name: req.body.newCategory})
         return res.status(201).json({message: "Categroy added successfully"})
     } catch (err) {
         console.log(err)

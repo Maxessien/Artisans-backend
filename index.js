@@ -7,8 +7,6 @@ import dotenv from "dotenv";
 import { connectDB } from "./configs/mongoDBConfig.js";
 import { Product } from "./models/productsModel.js";
 import { test } from "./test.js";
-import mongoose from "mongoose";
-import { User } from "./models/usersModel.js";
 import { auth } from "./configs/fbConfigs.js";
 
 dotenv.config();
@@ -38,31 +36,31 @@ const PORT = process.env.PORT || 5050;
 connectDB();
 
 try {
-  let newArray = [];
-  newTest.forEach((test) => {
-    newArray.push({
-      name: test.title,
-      price: Number(test.price),
-      discountPrice: test.price-(Number(test.discountPercentage/100)*Number(test.price)),
-      imageUrl: test.images[0],
-      productId: test.id * Math.random()*10,
-      category: test.category,
-      productReviews: test.reviews,
-      vendorId: test.id * Math.random()*10,
-      description: test.description,
-      tags: test.tags,
-      ratings: test.rating,
-      comments: test.reviews[0].comment,
-    });
-  });
-  const dbStore = await Product.insertMany(newArray);
-  const count = await Product.countDocuments()
-  console.log(dbStore[0].createdAt, "hello");
+  // let newArray = [];
+  // newTest.forEach((test) => {
+  //   newArray.push({
+  //     name: test.title,
+  //     price: Number(test.price),
+  //     discountPrice: test.price-(Number(test.discountPercentage/100)*Number(test.price)),
+  //     imageUrl: test.images[0],
+  //     productId: test.id * Math.random()*10,
+  //     category: test.category,
+  //     productReviews: test.reviews,
+  //     vendorId: test.id * Math.random()*10,
+  //     description: test.description,
+  //     tags: test.tags,
+  //     ratings: test.rating,
+  //     comments: test.reviews[0].comment,
+  //   });
+  // });
+  //const dbStore = await Product.insertMany(newArray);
+  const count = await Product.find()
+  console.log("Product count", count)
+  //console.log(dbStore[0].createdAt, "hello");
   const user = await auth.getUserByEmail("essienmax484@gmail.com")
-  if(user){
-    await auth.deleteUser(user.uid)
-  }
-  console.log(count)
+  //if(user){
+   // await auth.deleteUser(user.uid)
+  //}
 } catch (err) {
   console.log(err);
 }

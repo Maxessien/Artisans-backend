@@ -11,7 +11,7 @@ const placeOrders = async (req, res) => {
     const populatedCart = await populateUserCart(user.cart);
 	console.log(populatedCart, "cart")
     populatedCart.forEach(async (product) => {
-      await Order.insertOne({
+      await Order.create({
         productId: product.productId,
         name: product.name,
         price: product.price,

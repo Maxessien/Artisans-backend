@@ -1,19 +1,19 @@
 import { findError } from "../fbAuthErrors.js";
 import { auth } from "../configs/fbConfigs.js";
 import { User } from "../models/usersModel.js";
-import { uploader } from "../configs/cloudinaryConfigs.js";
-import { cleanUpStorage, populateUserCart } from "../utils/usersUtilFns.js";
+import { generateOtp, populateUserCart } from "../utils/usersUtilFns.js";
+import { AuthOtp } from "../models/authOtpModel.js";
 
 const createUser = async (req, res) => {
   try {
     const user = await auth.createUser(req.body);
-    await auth.setCustomUserClaims(user.uid, { role: "user" });
+    await auth.setCustomUserClaims(user.uid, { role: "user", isVerified: {email: true, phone: true} });
     console.log(user, "user");
     const dbStore = await User.create({
       userId: user.uid,
       email: user.email,
       displayName: user.displayName,
-      phoneNumber: user.phoneNumber,
+      phoneNumber: "8114537444",
     });
     console.log(dbStore);
     return res.status(201).json({ message: "Account created successfully" });
@@ -65,67 +65,15 @@ const updateUser = async (req, res) => {
   }
 };
 
-const uploadUserProfilePhoto =
-  () =>
-  async (req, res) => {
-    console.log("Visited upload");
-    try {
-       const profilePhotoDb = await User.findOne({ userId: req.auth.uid }).select(
-          "profilePicture"
-        );
-        const isUpdate = profilePhotoDb?.profilePicture.url !== "default_public_id"
-      const uploadedImage = await uploader.upload(req.file.path, {
-        folder:
-          isUpdate ? profilePhotoDb?.profilePicture.publicId :
-          "lasu_mart/user_profile_photos",
-      });
-      const storedInDb = await User.findOneAndUpdate(
-        { userId: req.auth.uid },
-        {
-          profilePicture: {
-            url: uploadedImage.secure_url,
-            publicId: uploadedImage.public_id,
-          },
-        },
-        { new: true }
-      );
-      cleanUpStorage();
-      console.log(storedInDb);
-      return res.status(201).json(storedInDb);
-    } catch (err) {
-      console.log(err);
-      const errorMessage = findError(err.code);
-      console.log(errorMessage);
-      return res.status(errorMessage?.statusCode || 500).json({
-        message: errorMessage?.customMessage || "Server error, try again later",
-      });
-    }
-  };
-
-const deleteUserProfilePhoto = async (req, res) => {
-  try {
-    const profilePhotoDb = await User.findOne({ userId: req.auth.uid }).select(
-      "profilePicture"
-    );
-    await uploader.destroy(profilePhotoDb.publicId);
-    const updatedUserDb = await User.findOneAndUpdate(
-      { userId: req.auth.uid },
-      {
-        profilePicture: {
-          url: "default",
-          publicId: "default_public_id",
-        },
-      },
-      { new: true }
-    );
-    res.status(201).json(updatedUserDb);
-  } catch (err) {
-    console.log(err);
-    return res
-      .status(500)
-      .json({ message: "Failed to delete image, try again later" });
+const verifyUserCookie = async(req, res)=>{
+  try{
+    const user = await User.findOne({userId: req.auth.uid}).lean()
+    return res.status(200).json({...req.auth, ...user})
+  }catch(err){
+    console.log(err)
+    return res.status(500).json({message: "Server error"})
   }
-};
+}
 
 const setLoggedInUserCookie = async(req, res)=>{
 	const isDevelopment = process.env.NODE_ENV==="development"
@@ -145,11 +93,34 @@ const setLoggedInUserCookie = async(req, res)=>{
   }
 }
 
+const sendOtp = async(req, res)=>{
+  try{
+    const value = await generateOtp(req.body.type, req.body.value)
+    console.log(value)
+  }catch(err){
+    console.log(err)
+    res.status(500).json(err)
+  }
+}
+
+const verifyOtp = async(req, res)=>{
+    try{
+        const {value, expiryTime, reciever} = await AuthOtp.findOne({value: req.body.otpValue}).lean()
+        const stillValid = expiryTime ? expiryTime - Date.now() > 10000 : false
+        if(!value || !stillValid || req.auth[req.body.type] !== reciever) throw new Error("Invalid Otp")
+        res.status(200).json({message: "Verfication successful"})
+    }catch(err){
+        console.log(err)
+        res.status(500).json(err)
+    }
+}
+
 export {
   createUser,
   updateUser,
-  uploadUserProfilePhoto,
-  deleteUserProfilePhoto,
   getUser,
   setLoggedInUserCookie,
+  verifyUserCookie,
+  sendOtp,
+  verifyOtp,
 };
