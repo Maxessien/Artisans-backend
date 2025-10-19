@@ -9,8 +9,8 @@ const userSchema = new Schema(
       url: { type: String, required: true, default: "default" },
       publicId: { type: String, required: true, default: "default", select: false },
     },
-    email: { type: String },
-    phoneNumber: { type: String },
+    email: { type: String, required: true },
+    phoneNumber: { type: String, required: true },
     cart: {
       type: [
         {
@@ -26,7 +26,7 @@ const userSchema = new Schema(
     role: {
       type: String,
       required: true,
-      enum: ["user", "admin", "vendor"],
+      enum: ["user", "admin"],
       default: "user",
       select: false,
       immutable: true

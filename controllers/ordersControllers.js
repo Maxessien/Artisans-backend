@@ -10,23 +10,24 @@ const placeOrders = async (req, res) => {
 	console.log(user, "user")
     const populatedCart = await populateUserCart(user.cart);
 	console.log(populatedCart, "cart")
-    populatedCart.forEach(async (product) => {
-      await Order.create({
+    const ordersArray = populatedCart.map(async (product) => {
+      return {
         productId: product.productId,
         name: product.name,
         price: product.price,
-        variant: req.body.variant ?? null,
+        ...(req.body.variant ? {variant: req.body.variant} : {}),
         vendorId: product.vendorId,
         quantityOrdered: product.quantity,
         userId: req.auth.uid,
         address: req.body.address,
         customerContactInfo: {
-          email: req.body.email ?? null,
+          email: req.auth.email,
           phone: req.body.phone,
         },
         paymentMethod: req.body.paymentMethod,
-      });
+      }
     });
+    await Order.insertMany(ordersArray);
 	const orders = await Order.find().lean()
 	console.log(orders)
   } catch (err) {

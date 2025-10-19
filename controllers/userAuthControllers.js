@@ -8,12 +8,11 @@ const createUser = async (req, res) => {
   try {
     const user = await auth.createUser(req.body);
     await auth.setCustomUserClaims(user.uid, { role: "user", isVerified: {email: true, phone: true} });
-    console.log(user, "user");
     const dbStore = await User.create({
       userId: user.uid,
       email: user.email,
+      phoneNumber: user.phoneNumber,
       displayName: user.displayName,
-      phoneNumber: "8114537444",
     });
     console.log(dbStore);
     return res.status(201).json({ message: "Account created successfully" });
@@ -28,7 +27,6 @@ const createUser = async (req, res) => {
 };
 
 const getUser = async (req, res) => {
-  console.log("fetting");
   try {
     const uid = req.auth.uid;
     const user = await User.findOne({ userId: uid }).lean();
