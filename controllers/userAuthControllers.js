@@ -3,7 +3,7 @@ import { auth } from "../configs/fbConfigs.js";
 import { User } from "../models/usersModel.js";
 import { populateUserCart, emailJsLogoSvg } from "../utils/usersUtilFns.js";
 import { AuthOtp } from "../models/authOtpModel.js";
-import emailjs from "@emailjs/browser"
+import emailjs from "@emailjs/nodejs"
 
 const createUser = async (req, res) => {
   try {
