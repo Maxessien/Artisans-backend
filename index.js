@@ -8,6 +8,7 @@ import { connectDB } from "./configs/mongoDBConfig.js";
 import { Product } from "./models/productsModel.js";
 import { test } from "./test.js";
 import { auth } from "./configs/fbConfigs.js";
+import emailjs from "@emailjs/browser"
 
 dotenv.config();
 
@@ -20,6 +21,18 @@ app.use(
     credentials: true,
   })
 );
+
+emailjs.init({
+  publicKey: process.env.EMAILJS_PUBLIC_KEY,
+  // Do not allow headless browsers
+  blockHeadless: true,
+  limitRate: {
+    // Set the limit rate for the application
+    id: 'app',
+    // Allow 1 request per 10s
+    throttle: 10000,
+  },
+});
 
 app.use(express.json());
 

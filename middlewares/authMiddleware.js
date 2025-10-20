@@ -18,7 +18,7 @@ const userAuthMiddleware = async (req, res, next) => {
     }
   } catch (err) {
     console.log(err, "error");
-    return res.status(400).json({ message: "Unauthorised access" });
+    return res.status(400).json({ message: "Unauthorised access at catch" });
   }
 };
 
