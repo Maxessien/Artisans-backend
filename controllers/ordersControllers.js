@@ -22,6 +22,7 @@ const placeOrders = async (req, res) => {
         customerContactInfo: {
           email: user.email,
           phone: user.phoneNumber,
+          name: user.displayName,
         },
       };
     });
