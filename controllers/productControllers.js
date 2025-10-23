@@ -88,7 +88,7 @@ const updateProduct = async (req, res) => {
   try {
     const { productName, price, category, description, productStatus } =
       req.body;
-    const product = await Product.findOne({ productId: req.body.productId })
+    const product = await Product.findOne({ productId: req.query.productId })
       .select("images")
       .lean();
     await Product.updateOne(
