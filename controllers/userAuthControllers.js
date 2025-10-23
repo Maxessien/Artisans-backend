@@ -3,12 +3,18 @@ import { auth } from "../configs/fbConfigs.js";
 import { User } from "../models/usersModel.js";
 import { populateUserCart } from "../utils/usersUtilFns.js";
 import { AuthOtp } from "../models/authOtpModel.js";
-import emailjs from "@emailjs/nodejs"
+import emailjs from "@emailjs/nodejs";
 
 const createUser = async (req, res) => {
   try {
-    const user = await auth.createUser({...req.body, phoneNumber: `+234${req.body.phoneNumber}`});
-    await auth.setCustomUserClaims(user.uid, { role: "user", isVerified: {email: false, phone: true} });
+    const user = await auth.createUser({
+      ...req.body,
+      phoneNumber: `+234${req.body.phoneNumber}`,
+    });
+    await auth.setCustomUserClaims(user.uid, {
+      role: "user",
+      isVerified: { email: false, phone: true },
+    });
     const dbStore = await User.create({
       userId: user.uid,
       email: user.email,
@@ -44,7 +50,7 @@ const updateUser = async (req, res) => {
   try {
     console.log(req.auth);
     if (!req.query?.type || req.query?.type !== "dbOnly") {
-      const user = await auth.updateUser(req.auth.uid, req.body);
+      const user = await auth.updateUser(req.auth.uid, {...req.body, phone_number: req.body.phoneNumber});
     }
     if (!req.query?.type || req.query?.type !== "authOnly") {
       const updatedUser = await User.findOneAndUpdate(
@@ -94,18 +100,25 @@ const setLoggedInUserCookie = async (req, res) => {
 
 const sendOtp = async (req, res) => {
   try {
-      console.log(req.body, "bodyyyyyy")
-      const data = await AuthOtp.create({otpType: req.body.type, reciever: req.body.value})
-      if(req.body.type==="email" && process.env.NODE_ENV!=="development"){
-        await emailjs.send(process.env.EMAILJS_SERVICE_ID, process.env.EMAILJS_TEMPLATE_ID, {
-                email: req.body.value,
-                passcode: data.value,
-                time: "5 minutes",
-                companyName: "Lasu Mart"
-              })
-      }
-    console.log(data);
-	  return res.status(201).json({message: "Otp sent"})
+    console.log(req.body, "bodyyyyyy");
+    const data = await AuthOtp.create({
+      otpType: req.body.type,
+      reciever: req.body.value,
+    });
+	console.log(data)
+    if (req.body.type === "email" && process.env.NODE_ENV !== "development") {
+      await emailjs.send(
+        process.env.EMAILJS_SERVICE_ID,
+        process.env.EMAILJS_TEMPLATE_ID,
+        {
+          email: req.body.value,
+          passcode: data.value,
+          time: "5 minutes",
+          companyName: "Lasu Mart",
+        }
+      );
+    }
+    return res.status(201).json({ message: "Otp sent" });
   } catch (err) {
     console.log(err);
     res.status(500).json(err);
@@ -114,19 +127,22 @@ const sendOtp = async (req, res) => {
 
 const verifyOtp = async (req, res) => {
   try {
-	console.log(req.auth, "anshshdhdh")
     const { value, expiryTime, reciever } = await AuthOtp.findOne({
       value: req.body.otpValue,
     }).lean();
     const stillValid = expiryTime ? expiryTime - Date.now() > 10000 : false;
-	console.log(value, expiryTime, Date.now(), stillValid, req.auth["phone_number"], reciever, "alllllll")
-    if (!value || !stillValid || req.auth[req.body.type==="phoneNumber" ? "phone_number" : "email"] !== reciever)
+    if (
+      !value ||
+      !stillValid ||
+      req.auth[req.body.type === "phoneNumber" ? "phone_number" : "email"] !==
+        reciever
+    )
       throw new Error("Invalid Otp");
     await auth.setCustomUserClaims(req.auth.uid, {
-	role: "user",
+      role: "user",
       isVerified: {
         ...req.auth.isVerified,
-	...(req.body.type==="email" ? {email: true} : {phone: true})
+        ...(req.body.type === "email" ? { email: true } : { phone: true }),
       },
     });
     res.status(200).json({ message: "Verfication successful" });

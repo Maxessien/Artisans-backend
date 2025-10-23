@@ -3,6 +3,8 @@ import cors from "cors";
 import userRoutes from "./routes/userRoutes.js";
 import productRoutes from "./routes/productRoutes.js";
 import categoriesRoutes from "./routes/categoriesRoutes.js";
+import authRoutes from "./routes/authRoutes.js";
+import ordersRoutes from "./routes/ordersRoutes.js";
 import dotenv from "dotenv";
 import { connectDB } from "./configs/mongoDBConfig.js";
 import { Product } from "./models/productsModel.js";
@@ -27,7 +29,15 @@ emailjs.init({
   privateKey: process.env.EMAILJS_PRIVATE_KEY
 });
 
-app.use(express.json());
+app.use((req, res, next)=>{
+	const contentType = req.headers["content-type"]
+	console.log(contentType, "content type")
+	if(contentType?.includes("multipart/form-data")){
+		next()
+	}else{
+		express.json()(req, res, next)
+	}
+});
 
 const newTest = test.products;
 
@@ -35,6 +45,8 @@ const newTest = test.products;
 app.use("/user", userRoutes);
 app.use("/product", productRoutes);
 app.use("/category", categoriesRoutes);
+app.use("/auth", authRoutes)
+app.use("/orders", ordersRoutes)
 
 const PORT = process.env.PORT || 5050;
 

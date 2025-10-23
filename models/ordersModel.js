@@ -15,12 +15,6 @@ const orderSchema = new Schema(
     variant: {type: String},
     vendorId: { type: String, required: true },
     quantityOrdered: { type: Number, required: true, default: 1 },
-    paymentStatus: {
-      type: String,
-      enum: ["pending", "completed", "incomplete"],
-      required: true,
-      default: "pending"
-    },
     deliveryStatus: {
       type: String,
       enum: ["pending", "delivered", "active", "cancelled"],
@@ -33,7 +27,6 @@ const orderSchema = new Schema(
       email: { type: String },
       phone: { type: String, required: true },
     },
-    paymentMethod: { type: String, required: true, enum: ["online", "delivery"] },
   },
   { timeStamp: true }
 );

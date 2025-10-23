@@ -32,10 +32,10 @@ const addToCart = async (req, res) => {
 
 const deleteFromCart = async (req, res) => {
   try {
-    console.log(req.query);
+    console.log(req.params);
     const user = await User.findOne({ userId: req.auth.uid }).lean();
     const newCart = user.cart.filter((item) => {
-      return item.productId !== req.query.productId;
+      return item.productId !== req.params.productId;
     });
     console.log(newCart);
     const updatedUser = await User.findOneAndUpdate(
@@ -45,17 +45,6 @@ const deleteFromCart = async (req, res) => {
     ).lean();
     const populatedCart = await populateUserCart(updatedUser.cart);
     return res.status(201).json({ ...updatedUser, cart: populatedCart });
-  } catch (err) {
-    console.log(err);
-    return res.status(500).json({ message: "Server error" });
-  }
-};
-
-const getOrderHistory = async (req, res) => {
-  try {
-    const orders = await Order.find({ userId: { $in: req.auth.uid } }).lean();
-    console.log(orders);
-    return res.status(200).json(orders);
   } catch (err) {
     console.log(err);
     return res.status(500).json({ message: "Server error" });
@@ -125,7 +114,6 @@ const deleteUserProfilePhoto = async (req, res) => {
 export {
   addToCart,
   deleteFromCart,
-  getOrderHistory,
   uploadUserProfilePhoto,
   deleteUserProfilePhoto,
 };

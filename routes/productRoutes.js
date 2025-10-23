@@ -19,18 +19,18 @@ router.post("/", getProducts);
 router.get("/single", getSingleProduct);
 router.get("/trending", getTrendingProducts);
 router.get("/vendor", userAuthMiddleware, getVendorProduct);
-router.post("/add", upload.array("images", 5), userAuthMiddleware, handleProductImageUpload, addProduct);
+router.post("/vendor", upload.array("images", 5), userAuthMiddleware, handleProductImageUpload, addProduct);
 router.post(
-  "/update",
+  "/vendor/:id",
   userAuthMiddleware,
   verifyVendorOwnership,
   upload.array("images", 5),
   handleProductImageUpload,
   updateProduct
 );
-router.delete("/delete", userAuthMiddleware, verifyVendorOwnership, deleteProduct);
+router.delete("/vendor/:id", userAuthMiddleware, verifyVendorOwnership, deleteProduct);
 router.delete(
-  "/delete/image",
+  "/vendor/:id/image",
   userAuthMiddleware,
   verifyVendorOwnership,
   deleteUploadedProductImage
