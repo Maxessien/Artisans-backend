@@ -29,15 +29,7 @@ emailjs.init({
   privateKey: process.env.EMAILJS_PRIVATE_KEY
 });
 
-app.use((req, res, next)=>{
-	const contentType = req.headers["content-type"]
-	console.log(contentType, "content type")
-	if(contentType?.includes("multipart/form-data")){
-		next()
-	}else{
-		express.json()(req, res, next)
-	}
-});
+app.use(express.json());
 
 const newTest = test.products;
 

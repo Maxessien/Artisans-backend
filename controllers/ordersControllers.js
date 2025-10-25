@@ -5,11 +5,12 @@ import { populateUserCart } from "./../utils/usersUtilFns.js";
 const placeOrders = async (req, res) => {
   try {
     const user = await User.findOne({ userId: req.auth.uid })
+      .select("cart")
       .lean();
     console.log(user, "user");
     const populatedCart = await populateUserCart(user.cart);
     console.log(populatedCart, "cart");
-    const ordersArray = populatedCart.map((product) => {
+    const ordersArray = populatedCart.map(async (product) => {
       return {
         productId: product.productId,
         name: product.name,
@@ -22,11 +23,9 @@ const placeOrders = async (req, res) => {
         customerContactInfo: {
           email: user.email,
           phone: user.phoneNumber,
-          name: user.displayName,
         },
       };
     });
-	console.log(ordersArray, "array many")
     await Order.insertMany(ordersArray);
     const orders = await Order.find().lean();
     console.log(orders);
@@ -85,7 +84,7 @@ const getVendorOrders = async (req, res) => {
       limit=20
     } = req.query;
     const orders = await Order.find({
-      vendorId: req.auth.uid,
+      vendorId: { $in: req.auth.uid },
       deliveryStatus: { $in: status },
     })
       .sort({[orderBy]: direction}).limit(limit)

@@ -62,17 +62,10 @@ const getVendorProduct = async (req, res) => {
 
 const addProduct = async (req, res) => {
   try {
-    console.log(req.body);
     const { email, phone } = req.auth.isVerified;
-    const { productName, price, category, description, productStatus } =
-      req.body;
     if (!email || !phone) throw new Error("Unverified vendor");
     await Product.create({
-      name: productName,
-      price: price,
-      category: category,
-      description: description,
-      productStatus: productStatus,
+      ...req.body,
       images: req.images,
       vendorId: req.auth?.uid,
       vendorContact: { email: req.auth.email },
@@ -86,22 +79,10 @@ const addProduct = async (req, res) => {
 
 const updateProduct = async (req, res) => {
   try {
-    const { productName, price, category, description, productStatus } =
-      req.body;
-    const product = await Product.findOne({ productId: req.query.productId })
-      .select("images")
-      .lean();
-	console.log(product)
+    const product = await Product.findOne({productId: req.body.productId}).select("images").lean()
     await Product.updateOne(
-      { productId: req.query.productId },
-      {
-        name: productName,
-        price: price,
-        category: category,
-        description: description,
-        productStatus: productStatus,
-        ...(req.images ? { images: [...product.images, ...req.images] } : {}),
-      }
+      { productId: req.body.productId },
+      { ...req.body, ...(req.images ? { images: [...product.images, ...req.images] } : {}) }
     );
     return res.status(200).json({ message: "Updated successfully" });
   } catch (err) {
@@ -138,7 +119,7 @@ const deleteUploadedProductImage = async (req, res) => {
       }
     );
     await uploader.destroy(req.query.publicId);
-    return res.status(200).json({ message: "Updated successfully" });
+    return res.status(200).json({message: "Updated successfully"});
   } catch (err) {
     console.log(err);
     res.status(500).json(err);
