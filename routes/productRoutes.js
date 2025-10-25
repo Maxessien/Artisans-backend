@@ -22,9 +22,9 @@ router.get("/vendor", userAuthMiddleware, getVendorProduct);
 router.post("/vendor", upload.array("images", 5), userAuthMiddleware, handleProductImageUpload, addProduct);
 router.post(
   "/vendor/:id",
+  upload.array("images", 5),
   userAuthMiddleware,
   verifyVendorOwnership,
-  upload.array("images", 5),
   handleProductImageUpload,
   updateProduct
 );

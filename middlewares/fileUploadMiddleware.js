@@ -3,7 +3,7 @@ import { cleanUpStorage } from "../utils/usersUtilFns.js";
 
 const handleProductImageUpload = async (req, res, next) => {
   try {
-	if (!req.files || req.files.length <= 0) next()
+	if (!req.files || req.files.length <= 0) return next()
     const imagesInfo = await Promise.all(req.files.map(async ({ path }, index) => {
       if (index + 1 <= 5) {
         const uploadedImage = await uploader.upload(path, {
@@ -21,7 +21,7 @@ const handleProductImageUpload = async (req, res, next) => {
     next();
   } catch (err) {
     console.log(err);
-    return res.status(500).json({ message: "Server Error" });
+    next(err)
   }
 };
 

@@ -18,7 +18,7 @@ const userAuthMiddleware = async (req, res, next) => {
     }
   } catch (err) {
     console.log(err, "error");
-    return res.status(400).json({ message: "Unauthorised access at catch" });
+    next(err)
   }
 };
 
@@ -27,12 +27,12 @@ const verifyVendorOwnership = async(req, res, next)=>{
     const {email, phone} = req.auth.isVerified
     if (!email || !phone) throw new Error("Unverified vendor")
     const product = await Product.findOne({productId: req.query.productId}).select("vendorId").lean()
-	console.log(req.query.id, product, "pehdfncb")
+	console.log(req.query.productId, req.auth.uid, product, "verify vendor")
     if (req.auth.uid !== product.vendorId) throw new Error("Unauthorised access")
     next()
   }catch(err){
     console.log(err)
-    return res.status(400).json({message: "Unauthorised access"})
+    next(err)
   }
 }
 
