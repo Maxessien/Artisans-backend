@@ -84,7 +84,7 @@ const getVendorOrders = async (req, res) => {
       limit=20
     } = req.query;
     const orders = await Order.find({
-      vendorId: { $in: req.auth.uid },
+      vendorId: req.auth.uid,
       deliveryStatus: { $in: status },
     })
       .sort({[orderBy]: direction}).limit(limit)

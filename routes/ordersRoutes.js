@@ -7,10 +7,10 @@ router.use(userAuthMiddleware)
 
 //router.get("/")
 //router.get("/:id")
-router.get("/user/:userId", getOrderHistory)
-router.post("/user/:userId", placeOrders)
-router.delete("/user/:orderId", cancelOrder)
-router.get("/vendor", getVendorOrders)
-router.post("/vendor/:id/status", updateOrderStatus)
+router.get("/user/:userId", userAuthMiddleware, getOrderHistory)
+router.post("/user/:userId", userAuthMiddleware, placeOrders)
+router.delete("/user/:orderId", userAuthMiddleware, cancelOrder)
+router.get("/vendor", userAuthMiddleware, getVendorOrders)
+router.post("/vendor/:id/status", userAuthMiddleware, updateOrderStatus)
 
 export default router
