@@ -5,12 +5,11 @@ import { populateUserCart } from "./../utils/usersUtilFns.js";
 const placeOrders = async (req, res) => {
   try {
     const user = await User.findOne({ userId: req.auth.uid })
-      .select("cart")
       .lean();
     console.log(user, "user");
     const populatedCart = await populateUserCart(user.cart);
     console.log(populatedCart, "cart");
-    const ordersArray = populatedCart.map(async (product) => {
+    const ordersArray = populatedCart.map((product) => {
       return {
         productId: product.productId,
         name: product.name,

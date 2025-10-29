@@ -18,7 +18,7 @@ const userAuthMiddleware = async (req, res, next) => {
     }
   } catch (err) {
     console.log(err, "error");
-    return res.status(400).json({ message: "Unauthorised access at catch" });
+    next(err)
   }
 };
 
@@ -32,7 +32,7 @@ const verifyVendorOwnership = async(req, res, next)=>{
     next()
   }catch(err){
     console.log(err)
-    return res.status(400).json({message: "Unauthorised access"})
+    next(err)
   }
 }
 

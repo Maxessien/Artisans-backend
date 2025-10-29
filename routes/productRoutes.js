@@ -19,9 +19,9 @@ router.post("/", getProducts);
 router.get("/single", getSingleProduct);
 router.get("/trending", getTrendingProducts);
 router.get("/vendor", userAuthMiddleware, getVendorProduct);
-router.post("/", upload.array("images", 5), userAuthMiddleware, handleProductImageUpload, addProduct);
+router.post("/vendor", upload.array("images", 5), userAuthMiddleware, handleProductImageUpload, addProduct);
 router.post(
-  "/:id",
+  "/vendor/:id",
   userAuthMiddleware,
   verifyVendorOwnership,
   upload.array("images", 5),

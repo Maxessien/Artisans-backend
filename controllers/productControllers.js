@@ -65,7 +65,8 @@ const addProduct = async (req, res) => {
     const { email, phone } = req.auth.isVerified;
     if (!email || !phone) throw new Error("Unverified vendor");
     await Product.create({
-      ...req.body,
+	name: req.body.productName,
+	...req.body,
       images: req.images,
       vendorId: req.auth?.uid,
       vendorContact: { email: req.auth.email },
@@ -79,11 +80,13 @@ const addProduct = async (req, res) => {
 
 const updateProduct = async (req, res) => {
   try {
-    const product = await Product.findOne({productId: req.body.productId}).select("images").lean()
-    await Product.updateOne(
-      { productId: req.body.productId },
-      { ...req.body, ...(req.images ? { images: [...product.images, ...req.images] } : {}) }
-    );
+    const product = await Product.findOne({productId: req.query.productId}).select("images").lean()
+	console.log(product, "proooooo")
+    await Product.updateOne({productId: req.query.productId}, {
+	name: req.body.productName,
+	...req.body,
+	images: req?.images ? [...product.images, ...req.images] : product.images
+	})
     return res.status(200).json({ message: "Updated successfully" });
   } catch (err) {
     console.log(err);

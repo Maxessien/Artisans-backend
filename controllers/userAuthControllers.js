@@ -7,6 +7,7 @@ import emailjs from "@emailjs/nodejs";
 
 const createUser = async (req, res) => {
   try {
+	console.log(req.body)
     const user = await auth.createUser({
       ...req.body,
       phoneNumber: `+234${req.body.phoneNumber}`,
