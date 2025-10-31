@@ -29,7 +29,6 @@ const productSchema = new Schema(
     description: { type: String },
     tags: { type: [String], required: true, default: [] },
     ratings: { type: Number, required: true, min: 1, max: 5, default: 3 },
-    comments: { type: [String], required: true, default: [] },
     vectorRepresentation: { type: [Number], required: true, default: [] },
   },
   { timestamps: true }

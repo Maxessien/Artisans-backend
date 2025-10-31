@@ -11,6 +11,8 @@ import { Product } from "./models/productsModel.js";
 import { test } from "./test.js";
 import { auth } from "./configs/fbConfigs.js";
 import emailjs from "@emailjs/nodejs"
+import { Category } from "./models/categoriesModel.js";
+import { User } from "./models/usersModel.js";
 
 dotenv.config();
 
@@ -42,35 +44,28 @@ app.use("/orders", ordersRoutes)
 
 const PORT = process.env.PORT || 5050;
 
-//connect to mongoose db
 connectDB();
 
 try {
-  // let newArray = [];
-  // newTest.forEach((test) => {
-  //   newArray.push({
-  //     name: test.title,
-  //     price: Number(test.price),
-  //     discountPrice: test.price-(Number(test.discountPercentage/100)*Number(test.price)),
-  //     imageUrl: test.images[0],
-  //     productId: test.id * Math.random()*10,
-  //     category: test.category,
-  //     productReviews: test.reviews,
-  //     vendorId: test.id * Math.random()*10,
-  //     description: test.description,
-  //     tags: test.tags,
-  //     ratings: test.rating,
-  //     comments: test.reviews[0].comment,
-  //   });
-  // });
-  //const dbStore = await Product.insertMany(newArray);
+  const categories = ["Academics", "Food", "Clothing", "Snacks", "Drinks"]
+  const formatted = categories.map((title)=>({name: title}))
+  const stored = await Category.insertMany(formatted)
+  console.log(stored)
   const count = await Product.find()
   console.log("Product count", count)
-  //console.log(dbStore[0].createdAt, "hello");
-  const user = await auth.getUserByEmail("essienmax484@gmail.com")
-  //if(user){
-   // await auth.deleteUser(user.uid)
-  //}
+    const user = await auth.createUser({
+  displayName: "Max Essien",
+  email: "essienmax484@gmail.com",
+  phoneNumber: "+2348114537444",
+	password: "max12354"
+});
+    await auth.setCustomUserClaims(user.uid, {
+      role: "user",
+      isVerified: { email: true, phone: true },
+    });
+  //const user = await auth.getUserByEmail("essienmax484@gmail.com")
+  if (user) console.log(user.uid)
+	await User.updateOne({email: user.email}, {userId: user.uid})
 } catch (err) {
   console.log(err);
 }

@@ -36,4 +36,19 @@ const verifyVendorOwnership = async(req, res, next)=>{
   }
 }
 
-export { userAuthMiddleware, verifyVendorOwnership };
+const verifyAdmin = async(req, res, next)=>{
+  try {
+    if (!req?.auth) throw new Error("User not logged in")
+    const isAdmin = req.auth.role === "admin"
+    if (isAdmin){
+      return next()
+    }else {
+      throw new Error('Not an Admin')
+    }
+  } catch (err) {
+    console.log(err);
+    next(err)
+  }
+}
+
+export { userAuthMiddleware, verifyVendorOwnership, verifyAdmin };

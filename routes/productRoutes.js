@@ -15,7 +15,7 @@ import { upload } from "../utils/usersUtilFns.js";
 
 const router = express.Router();
 
-router.post("/", getProducts);
+router.get("/", getProducts);
 router.get("/single", getSingleProduct);
 router.get("/trending", getTrendingProducts);
 router.get("/vendor", userAuthMiddleware, getVendorProduct);

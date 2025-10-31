@@ -80,13 +80,14 @@ const getVendorOrders = async (req, res) => {
       orderBy = "createdAt",
       direction = "desc",
       status = ["pending", "completed", "cancelled"],
-      limit=20
+      limit=20,
+      page=1
     } = req.query;
     const orders = await Order.find({
       vendorId: req.auth.uid,
       deliveryStatus: { $in: status },
     })
-      .sort({[orderBy]: direction}).limit(limit)
+      .sort({[orderBy]: direction}).limit(limit).skip((page-1)*limit)
       .lean();
     return res.status(200).json(orders);
   } catch (err) {

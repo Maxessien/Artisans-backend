@@ -3,14 +3,15 @@ import { uploader } from "../configs/cloudinaryConfigs.js";
 
 const getProducts = async (req, res) => {
   try {
-    console.log({ ...req.body }, "fffff");
-    const { page, limit, sortInfo, priceRange } = req.body;
+    console.log({ ...req.query }, "fffff");
+    const { page=1, limit=20, sortBy="createdAt", order="desc", minPrice=0, maxPrice=5000000, category } = req.query;
     const products = await Product.find({
-      price: { $gte: priceRange.min, $lte: priceRange.max },
+      price: { $gte: minPrice, $lte: maxPrice },
+      category: {$in: category}
     })
-      .limit(20)
-      .skip(page - 1)
-      .sort([[sortInfo.type, sortInfo.order]])
+      .limit(limit)
+      .skip((page - 1)*limit)
+      .sort([[sortBy, order]])
       .lean();
     const count = await Product.countDocuments();
     console.log(count);
@@ -40,7 +41,6 @@ const getTrendingProducts = async (req, res) => {
       .sort([["ratings", "desc"]])
       .limit(6)
       .lean();
-    // console.log(trendingProducts, "trdprod");
     return res.status(202).json(trendingProducts);
   } catch (err) {
     console.log(err);
@@ -80,9 +80,9 @@ const addProduct = async (req, res) => {
 
 const updateProduct = async (req, res) => {
   try {
-    const product = await Product.findOne({productId: req.query.productId}).select("images").lean()
+    const product = await Product.findOne({productId: req.params.productId}).select("images").lean()
 	console.log(product, "proooooo")
-    await Product.updateOne({productId: req.query.productId}, {
+    await Product.updateOne({productId: req.params.productId}, {
 	name: req.body.productName,
 	...req.body,
 	images: req?.images ? [...product.images, ...req.images] : product.images
