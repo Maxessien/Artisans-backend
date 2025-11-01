@@ -28,7 +28,7 @@ const orderSchema = new Schema(
       phone: { type: String, required: true },
     },
   },
-  { timeStamp: true }
+  { timestamps: true }
 );
 
 export const Order = model("Order", orderSchema);

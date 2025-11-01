@@ -15,15 +15,17 @@ import {
 const router = express.Router();
 router.use(userAuthMiddleware)
 
-router.get("/:id", getUser);
-router.post("/:id", updateUser);
+router.get("/:id", userAuthMiddleware, getUser);
+router.get("/vendor/:id", getUser)
+router.post("/:id", userAuthMiddleware, updateUser);
 router.post(
   "/:id/uploads",
   upload.single("profilePhoto"),
+  userAuthMiddleware,
   uploadUserProfilePhoto
 );
-router.delete("/:id/uploads", deleteUserProfilePhoto);
-router.post("/:id/cart", addToCart);
-router.delete("/:id/cart/:productId", deleteFromCart);
+router.delete("/:id/uploads", userAuthMiddleware, deleteUserProfilePhoto);
+router.post("/:id/cart", userAuthMiddleware, addToCart);
+router.delete("/:id/cart/:productId", userAuthMiddleware, deleteFromCart);
 
 export default router;

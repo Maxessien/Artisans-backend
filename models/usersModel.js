@@ -11,6 +11,7 @@ const userSchema = new Schema(
     },
     email: { type: String, required: true },
     phoneNumber: { type: String, required: true },
+    chats: {type: [String], required: true, default: []},
     cart: {
       type: [
         {
