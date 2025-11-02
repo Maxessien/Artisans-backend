@@ -17,7 +17,7 @@ const router = express.Router();
 
 router.get("/", getProducts);
 router.get("/single", getSingleProduct);
-router.get("/trending", getTrendingProducts);
+router.get("/trending", ()=>console.log("reached"), getTrendingProducts);
 router.get("/vendor", userAuthMiddleware, getVendorProduct);
 router.post("/vendor", upload.array("images", 5), userAuthMiddleware, handleProductImageUpload, addProduct);
 router.post(

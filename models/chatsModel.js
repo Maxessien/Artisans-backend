@@ -1,5 +1,5 @@
 import { model, Schema } from "mongoose";
-import { crypto } from "crypto";
+import crypto from "crypto";
 
 const chatSchema = new Schema(
   {
@@ -15,7 +15,7 @@ const chatSchema = new Schema(
           senderId: String,
           senderName: String,
           message: String,
-          timeSent: () => Date.now(),
+          timeSent: {type: Date, default: () => Date.now()},
         },
       ],
     },

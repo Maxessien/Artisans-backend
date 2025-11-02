@@ -1,11 +1,11 @@
-import { allUserChats, getChat, getExistingChatMessages, startChat } from "../controllers/chatControllers";
-import { io } from "../index";
+import { io } from "../configs/serverConfig.js";
+import { allUserChats, getChat, getExistingChatMessages, startChat } from "../controllers/chatControllers.js";
 import {
   socketAuthMiddleware,
   verifyChatAccess,
   userAuthMiddleware,
-} from "../middlewares/authMiddleware";
-import { ChatModel } from "../models/ChatsModel";
+} from "../middlewares/authMiddleware.js";
+import { ChatModel } from "../models/chatsModel.js";
 import express from "express"
 
 io.of("/chat")
@@ -21,7 +21,7 @@ io.of("/chat")
             { chatId: socket.handshake.query.chatId },
             {$push: { messages: [...previousMessages, data] }}
           );
-          io.of("/chat/existing").emit("newMessage", data);
+          io.of("/chat").emit("newMessage", data);
         } catch (err) {
           console.log(err);
           socket.emit("serverError", err);

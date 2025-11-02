@@ -1,5 +1,5 @@
-import { ChatModel } from "../models/ChatsModel";
-import { User } from "../models/usersModel";
+import { ChatModel } from "../models/chatsModel.js";
+import { User } from "../models/usersModel.js";
 
 const getExistingChatMessages = async (soc) => {
   try {

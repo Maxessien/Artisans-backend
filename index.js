@@ -9,16 +9,10 @@ import chatRoutes from "./routes/chatRoutes.js";
 import dotenv from "dotenv";
 import { connectDB } from "./configs/mongoDBConfig.js";
 import { test } from "./test.js";
-import emailjs from "@emailjs/nodejs"
-import { createServer } from "http"
-import { Server } from "socket.io";
-// import { createServer } from "https";
+import emailjs from "@emailjs/nodejs";
+import { app, server } from "./configs/serverConfig.js";
 
 dotenv.config();
-
-const app = express();
-const server = createServer(app)
-export const io = new Server(server)
 
 app.use(
   cors({
@@ -30,7 +24,7 @@ app.use(
 
 emailjs.init({
   publicKey: process.env.EMAILJS_PUBLIC_KEY,
-  privateKey: process.env.EMAILJS_PRIVATE_KEY
+  privateKey: process.env.EMAILJS_PRIVATE_KEY,
 });
 
 app.use(express.json());
@@ -41,9 +35,9 @@ const newTest = test.products;
 app.use("/user", userRoutes);
 app.use("/product", productRoutes);
 app.use("/category", categoriesRoutes);
-app.use("/auth", authRoutes)
-app.use("/orders", ordersRoutes)
-app.use("/chat", chatRoutes)
+app.use("/auth", authRoutes);
+app.use("/orders", ordersRoutes);
+app.use("/chat", chatRoutes);
 
 const PORT = process.env.PORT || 5050;
 

@@ -41,6 +41,7 @@ const getTrendingProducts = async (req, res) => {
       .sort([["ratings", "desc"]])
       .limit(6)
       .lean();
+    console.log(trendingProducts, "trdppppppp")
     return res.status(202).json(trendingProducts);
   } catch (err) {
     console.log(err);

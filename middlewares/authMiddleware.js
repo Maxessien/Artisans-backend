@@ -1,5 +1,5 @@
 import { auth } from "../configs/fbConfigs.js";
-import { ChatModel } from "../models/ChatsModel.js";
+import { ChatModel } from "../models/chatsModel.js";
 import { Product } from "../models/productsModel.js";
 
 const userAuthMiddleware = async (req, res, next) => {
