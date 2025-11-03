@@ -17,6 +17,7 @@ const getExistingChatMessages = async (soc) => {
 
 const startChat = async (req, res) => {
   try {
+    const vendor = await User.findOne({userId: req.body.vendorId})
     const newChat = await ChatModel.create({
       messages: [
         {
@@ -25,8 +26,8 @@ const startChat = async (req, res) => {
           message: req.body.message,
         },
       ],
-      userId: req.auth.uid,
-      vendorId: req.body.vendorId,
+      userBasicInfo: {id: req.auth.uid, name: req.auth.displayName},
+      vendorBasicInfo: {id: vendor.userId, name: vendor.displayName},
     });
     await User.updateOne(
       { userId: { $in: [req.auth.uid, req.body.vendorId] } },
@@ -45,7 +46,6 @@ const getChat = async (req, res) => {
     const chat = await ChatModel.findOne({
       chatId: req.params.id
     })
-      .select()
       .lean();
     return res.status(200).json(chat);
   } catch (err) {
@@ -58,11 +58,12 @@ const allUserChats = async (req, res) => {
   try {
     const chats = await ChatModel.find({
       $or: [
-        {userId: req.auth.uid},
-        {vendorId: req.auth.uid}
+        {"userBasicInfo.id": req.auth.uid}, 
+        {"vendorId.id": req.auth.uid}
       ]
-    })
+    })  
       .lean();
+      console.log(chats)
     return res.status(200).json(chats);
   } catch (err) {
     console.log(err);
