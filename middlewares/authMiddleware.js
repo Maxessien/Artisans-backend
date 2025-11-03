@@ -7,15 +7,16 @@ const userAuthMiddleware = async (req, res, next) => {
   const token = authHeader?.startsWith("Bearer ")
     ? authHeader?.split("Bearer ")[1] || ""
     : null;
-  if (!token) throw new Error("Unauthorised access");
+    console.log(token, "oneeeee")
+  if (!token) throw new Error("Unauthorised access one");
   try {
     const decodedToken = await auth.verifyIdToken(token);
     if ("user" != decodedToken.role || !decodedToken) {
-      throw new Error("Unauthorised access");
+      throw new Error("Unauthorised access two");
     } else {
       req.auth = decodedToken;
       console.log(decodedToken, "token token");
-      next();
+      return next();
     }
   } catch (err) {
     console.log(err, "error");

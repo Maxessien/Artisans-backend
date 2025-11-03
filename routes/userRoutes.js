@@ -1,6 +1,7 @@
 import express from "express";
 import {
   getUser,
+  getVendorInfo,
   updateUser,
 } from "../controllers/userAuthControllers.js";
 import { userAuthMiddleware } from "../middlewares/authMiddleware.js";
@@ -16,7 +17,7 @@ const router = express.Router();
 router.use(userAuthMiddleware)
 
 router.get("/:id", userAuthMiddleware, getUser);
-router.get("/vendor/:id", getUser)
+router.get("/vendor/:id", getVendorInfo)
 router.post("/:id", userAuthMiddleware, updateUser);
 router.post(
   "/:id/uploads",

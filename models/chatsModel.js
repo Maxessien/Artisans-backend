@@ -6,7 +6,7 @@ const chatSchema = new Schema(
     chatId: {
       type: String,
       required: true,
-      default: () => crypto.randomUUid(),
+      default: () => crypto.randomUUID(),
       immutable: true,
     },
     messages: {

@@ -47,6 +47,16 @@ const getUser = async (req, res) => {
   }
 };
 
+const getVendorInfo = async(req, res)=>{
+  try{
+    const vendor = await User.findOne({userId: req.params.id}).select(["displayName", "email", "phoneNumber"]).lean()
+    return res.status(200).json(vendor)
+  }catch(err){
+    console.log(err)
+    return res.status(500).json(err)
+  }
+}
+
 const updateUser = async (req, res) => {
   try {
     console.log(req.auth);
@@ -157,6 +167,7 @@ export {
   createUser,
   updateUser,
   getUser,
+  getVendorInfo,
   setLoggedInUserCookie,
   verifyUserCookie,
   sendOtp,
