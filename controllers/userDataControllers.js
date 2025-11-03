@@ -1,5 +1,4 @@
 import { User } from "../models/usersModel.js";
-import { Order } from "../models/ordersModel.js";
 import { populateUserCart } from "../utils/usersUtilFns.js";
 
 const addToCart = async (req, res) => {

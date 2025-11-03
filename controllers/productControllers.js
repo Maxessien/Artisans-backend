@@ -37,6 +37,7 @@ const getSingleProduct = async (req, res) => {
 
 const getTrendingProducts = async (req, res) => {
   try {
+    console.log("stateg", req.headers)
     const trendingProducts = await Product.find()
       .sort([["ratings", "desc"]])
       .limit(6)

@@ -26,6 +26,7 @@ const placeOrders = async (req, res) => {
       };
     });
     await Order.insertMany(ordersArray);
+    await User.updateOne({userId: req.auth.uid}, {cart: []})
     const orders = await Order.find().lean();
     console.log(orders);
     return res.status(201).json({ message: "Order Created" });
