@@ -3,7 +3,7 @@ import { User } from "../models/usersModel.js";
 
 const getExistingChatMessages = async (soc) => {
   try {
-    const existingMessages = ChatModel.findOne({
+    const existingMessages = await ChatModel.findOne({
       chatId: soc.handshake.query.chatId,
     })
       .select("messages")
@@ -22,11 +22,11 @@ const startChat = async (req, res) => {
       messages: [
         {
           senderId: req.auth.uid,
-          senderName: req.auth.displayName,
+          senderName: req.auth.name,
           message: req.body.message,
         },
       ],
-      userBasicInfo: {id: req.auth.uid, name: req.auth.displayName},
+      userBasicInfo: {id: req.auth.uid, name: req.auth.name},
       vendorBasicInfo: {id: vendor.userId, name: vendor.displayName},
     });
     await User.updateOne(

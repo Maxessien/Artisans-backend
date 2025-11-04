@@ -8,8 +8,8 @@ const userAuthMiddleware = async (req, res, next) => {
     ? authHeader?.split("Bearer ")[1] || ""
     : null;
     console.log(token, "oneeeee")
-  if (!token) throw new Error("Unauthorised access one");
   try {
+    if (!token) throw new Error("Unauthorised access one");
     const decodedToken = await auth.verifyIdToken(token);
     if ("user" != decodedToken.role || !decodedToken) {
       throw new Error("Unauthorised access two");
@@ -77,7 +77,7 @@ const socketAuthMiddleware = async (socket, next) => {
 const verifyChatAccess = async (socket, next) => {
   try {
     const chatId = socket.handshake.query.chatId;
-    const chat = ChatModel.findOne({ chatId: chatId })
+    const chat = await ChatModel.findOne({ chatId: chatId })
       .select(["vendorId", "userId"])
       .lean();
     if (!chat?.vendorId || !chat?.userId)

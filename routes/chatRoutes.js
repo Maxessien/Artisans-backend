@@ -13,13 +13,13 @@ io.of("/chat")
   .use(verifyChatAccess)
   .on("connection", async (socket) => {
     try {
-      const existingMessages = await getExistingChatMessages(soc);
+      const existingMessages = await getExistingChatMessages(socket);
       socket.emit("previousMessages", existingMessages);
       socket.on("newMessage", async (data) => {
         try {
           await ChatModel.updateOne(
             { chatId: socket.handshake.query.chatId },
-            {$push: { messages: [...previousMessages, data] }}
+            {$push: { messages: data }}
           );
           io.of("/chat").emit("newMessage", data);
         } catch (err) {
