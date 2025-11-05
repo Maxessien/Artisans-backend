@@ -56,7 +56,7 @@ const verifyAdmin = async (req, res, next) => {
 };
 
 const socketAuthMiddleware = async (socket, next) => {
-  console.log(socket.handshake, "socket")
+  // console.log(socket.handshake, "socket")
   const token = socket.handshake.auth?.token;
   try {
     if (!token) throw new Error("Unauthorised access");
@@ -65,7 +65,7 @@ const socketAuthMiddleware = async (socket, next) => {
       throw new Error("Unauthorised access");
     } else {
       socket.user = decodedToken;
-      console.log(decodedToken, "token token");
+      // console.log(decodedToken, "token token");
       next();
     }
   } catch (err) {
@@ -76,7 +76,7 @@ const socketAuthMiddleware = async (socket, next) => {
 
 const verifyChatAccess = async (socket, next) => {
   try {
-    console.log(socket.handshake.query.chatId, "idddddd")
+    // console.log(socket.handshake.query.chatId, "idddddd")
     const chatId = socket.handshake.query.chatId;
     const chat = await ChatModel.findOne({ chatId: chatId })
       .lean();

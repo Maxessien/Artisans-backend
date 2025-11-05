@@ -1,5 +1,5 @@
 import { io } from "../configs/serverConfig.js";
-import { allUserChats, getChat, getExistingChatMessages, startChat } from "../controllers/chatControllers.js";
+import { allUserChats, getChat, startChat } from "../controllers/chatControllers.js";
 import {
   socketAuthMiddleware,
   verifyChatAccess,
@@ -12,18 +12,18 @@ io.of("/chat")
   .use(socketAuthMiddleware)
   .use(verifyChatAccess)
   .on("connection", async (socket) => {
-    console.log("connected to chat")
+    // console.log("connected to chat")
     try {
-      const existingMessages = await getExistingChatMessages(socket);
-      socket.emit("previousMessages", existingMessages);
       socket.on("newMessage", async (data) => {
         console.log("neww", data)
         try {
-          await ChatModel.updateOne(
+          const newChat = await ChatModel.findOneAndUpdate(
             { chatId: socket.handshake.query.chatId },
-            {$push: { messages: data }}
+            {$push: { messages: data }},
+            {new: true}
           );
-          io.of("/chat").emit("newMessage", data);
+          console.log(newChat, "ndhdhfhfhfhfh")
+          io.of("/chat").emit("newMessage", newChat.messages);
         } catch (err) {
           console.log(err);
           socket.emit("serverError", err);
