@@ -7,7 +7,6 @@ const userAuthMiddleware = async (req, res, next) => {
   const token = authHeader?.startsWith("Bearer ")
     ? authHeader?.split("Bearer ")[1] || ""
     : null;
-    console.log(token, "oneeeee")
   try {
     if (!token) throw new Error("Unauthorised access one");
     const decodedToken = await auth.verifyIdToken(token);
@@ -57,14 +56,15 @@ const verifyAdmin = async (req, res, next) => {
 };
 
 const socketAuthMiddleware = async (socket, next) => {
-  const token = socket.handshake.auth;
-  if (!token) throw new Error("Unauthorised access");
+  console.log(socket.handshake, "socket")
+  const token = socket.handshake.auth?.token;
   try {
+    if (!token) throw new Error("Unauthorised access");
     const decodedToken = await auth.verifyIdToken(token);
     if ("user" != decodedToken.role || !decodedToken) {
       throw new Error("Unauthorised access");
     } else {
-      socket.auth = decodedToken;
+      socket.user = decodedToken;
       console.log(decodedToken, "token token");
       next();
     }
@@ -76,13 +76,13 @@ const socketAuthMiddleware = async (socket, next) => {
 
 const verifyChatAccess = async (socket, next) => {
   try {
+    console.log(socket.handshake.query.chatId, "idddddd")
     const chatId = socket.handshake.query.chatId;
     const chat = await ChatModel.findOne({ chatId: chatId })
-      .select(["vendorId", "userId"])
       .lean();
-    if (!chat?.vendorId || !chat?.userId)
+    if (!chat?.vendorBasicInfo.id || !chat?.userBasicInfo.id)
       throw new Error("Chat doesn't exist");
-    const isAuthorised = [chat.userId, chat.vendorId].includes(socket.auth.uid)
+    const isAuthorised = [chat?.vendorBasicInfo.id, chat?.userBasicInfo.id].includes(socket.user.uid)
     if (!isAuthorised) throw new Error("User not authorised");
     next();
   } catch (err) {

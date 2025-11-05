@@ -14,4 +14,6 @@ const io = new Server(server, {
   },
 });
 
+io.on("connection", (socket)=>console.log("connected to socket", socket.handshake))
+
 export {app, io, server}

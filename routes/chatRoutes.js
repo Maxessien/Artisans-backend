@@ -12,10 +12,12 @@ io.of("/chat")
   .use(socketAuthMiddleware)
   .use(verifyChatAccess)
   .on("connection", async (socket) => {
+    console.log("connected to chat")
     try {
       const existingMessages = await getExistingChatMessages(socket);
       socket.emit("previousMessages", existingMessages);
       socket.on("newMessage", async (data) => {
+        console.log("neww", data)
         try {
           await ChatModel.updateOne(
             { chatId: socket.handshake.query.chatId },
