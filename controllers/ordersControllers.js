@@ -81,7 +81,7 @@ const getVendorOrders = async (req, res) => {
       orderBy = "createdAt",
       direction = "desc",
       status = ["pending", "completed", "cancelled"],
-      limit=20,
+      limit=0,
       page=1
     } = req.query;
     const orders = await Order.find({

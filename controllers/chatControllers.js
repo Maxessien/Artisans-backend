@@ -59,7 +59,7 @@ const allUserChats = async (req, res) => {
     const chats = await ChatModel.find({
       $or: [
         {"userBasicInfo.id": req.auth.uid}, 
-        {"vendorId.id": req.auth.uid}
+        {"vendorBasicInfo.id": req.auth.uid}
       ]
     })  
       .lean();

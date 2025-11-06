@@ -19,8 +19,8 @@ const chatSchema = new Schema(
         },
       ],
     },
-    userBasicInfo: {type: {id: String, name: String}, required: true},
-    vendorBasicInfo: {type: {id: String, name: String}, required: true},
+    userBasicInfo: {type: {id: String, name: String, profileImageUrl: String}, required: true},
+    vendorBasicInfo: {type: {id: String, name: String, profileImageUrl: String}, required: true},
   },
   { timestamps: true }
 );
