@@ -1,4 +1,4 @@
-// src/utils/OfflineCloudinary.js
+  // src/utils/OfflineCloudinary.js
 import fs from "fs/promises";
 import path from "path";
 import crypto from "crypto";
@@ -21,15 +21,16 @@ class OfflineCloudinary {
    */
   async upload(tempFilePath, options = {}) {
     const folder = options.folder || "";
+    const name = options?.fileName || crypto.randomUUID();
     const fullFolderPath = path.join(this.rootPath, folder);
 
     // Ensure folder exists
     await fs.mkdir(fullFolderPath, { recursive: true });
 
     // Generate unique filename
-    const ext = path.extname(tempFilePath) || ".jpg";
-    const public_id = crypto.randomUUID();
-    const fileName = public_id + ext;
+    const ext = path.extname(tempFilePath);
+    if (!ext?.trim()) throw new Error("Unsupported file type")
+    const fileName = name + ext;
 
     const finalPath = path.join(fullFolderPath, fileName);
 
@@ -44,7 +45,7 @@ class OfflineCloudinary {
     // Return Cloudinary-like response
     return {
       asset_id: crypto.randomUUID(),
-      public_id,
+      public_id: fileName,
       version: Date.now(),
       version_id: crypto.randomUUID(),
       signature: crypto.randomBytes(16).toString("hex"),
@@ -70,32 +71,25 @@ class OfflineCloudinary {
    * @returns {object} { result: "ok" } if deleted or { result: "not found" }
    */
   async destroy(public_id) {
-    const files = await this._findFilesByPublicId(public_id);
-    if (files.length === 0) return { result: "not found" };
-
-    for (const filePath of files) {
-      await fs.unlink(filePath);
-    }
+    const filePath = public_id;
+    await fs.unlink(filePath);
     return { result: "ok" };
   }
 
-  // Private helper: find all files with matching public_id
-  async _findFilesByPublicId(public_id) {
-    const walk = async (dir) => {
-      let fileList = [];
-      const entries = await fs.readdir(dir, { withFileTypes: true });
-      for (const entry of entries) {
-        const fullPath = path.join(dir, entry.name);
-        if (entry.isDirectory()) {
-          fileList = fileList.concat(await walk(fullPath));
-        } else if (entry.name.startsWith(public_id)) {
-          fileList.push(fullPath);
-        }
-      }
-      return fileList;
-    };
-    return walk(this.rootPath);
+  /**
+   * Delete every files and folder in the local offline cloudinary storage
+   * @returns {object} {result: ok} if successful
+   */
+  async clearStorage(){
+    await fs.rm(this.rootPath)
+    return {result: "ok"}
   }
 }
 
-export default new OfflineCloudinary();
+const offlineCloudinary = new OfflineCloudinary()
+
+export const upload = offlineCloudinary.upload()
+export const destroy = offlineCloudinary.destroy()
+export const clearStorage = offlineCloudinary.clearStorage()
+
+export default offlineCloudinary;

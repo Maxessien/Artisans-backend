@@ -9,7 +9,7 @@ import {
   deleteUploadedProductImage,
   getSingleProduct,
 } from "../controllers/productControllers.js";
-import { handleProductImageUpload } from "../middlewares/fileUploadMiddleware.js";
+import { handleProductImageUpload } from "../middlewares/regMiddleware.js";
 import { verifyVendorOwnership, userAuthMiddleware } from "../middlewares/authMiddleware.js";
 import { upload } from "../utils/usersUtilFns.js";
 

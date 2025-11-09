@@ -15,9 +15,9 @@ const handleProductImageUpload = async (req, res, next) => {
         };
       }
     }));
-	console.log(imagesInfo, "log imdddd")
+	  console.log(imagesInfo, "log imdddd")
     req.images = imagesInfo;
-    //cleanUpStorage();
+    cleanUpStorage(req.files);
     next();
   } catch (err) {
     console.log(err);

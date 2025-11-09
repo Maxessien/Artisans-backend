@@ -8,9 +8,10 @@ import ordersRoutes from "./routes/ordersRoutes.js";
 import chatRoutes from "./routes/chatRoutes.js";
 import dotenv from "dotenv";
 import { connectDB } from "./configs/mongoDBConfig.js";
-import { test } from "./test.js";
 import emailjs from "@emailjs/nodejs";
 import { app, server } from "./configs/serverConfig.js";
+import {rateLimit} from "express-rate-limit"
+import ExpressMongoSanitize from "express-mongo-sanitize";
 
 dotenv.config();
 
@@ -24,6 +25,14 @@ app.use(
   })
 );
 
+app.use(rateLimit({
+  windowMs: 5 * 60 * 1000,
+  limit: 100,
+  standardHeaders: true
+}))
+
+app.use(ExpressMongoSanitize({replaceWith: "_"}))
+
 emailjs.init({
   publicKey: process.env.EMAILJS_PUBLIC_KEY,
   privateKey: process.env.EMAILJS_PRIVATE_KEY,
@@ -31,7 +40,6 @@ emailjs.init({
 
 app.use(express.json());
 
-const newTest = test.products;
 
 //express routes
 app.use("/user", userRoutes);

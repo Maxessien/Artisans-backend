@@ -72,7 +72,7 @@ const uploadUserProfilePhoto = async (req, res) => {
       },
       { new: true }
     );
-    cleanUpStorage();
+    cleanUpStorage(req.file.path);
     console.log(storedInDb);
     return res.status(201).json(storedInDb);
   } catch (err) {
