@@ -88,8 +88,4 @@ class OfflineCloudinary {
 
 const offlineCloudinary = new OfflineCloudinary()
 
-export const upload = offlineCloudinary.upload()
-export const destroy = offlineCloudinary.destroy()
-export const clearStorage = offlineCloudinary.clearStorage()
-
 export default offlineCloudinary;

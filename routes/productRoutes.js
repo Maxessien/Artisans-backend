@@ -9,22 +9,50 @@ import {
   deleteUploadedProductImage,
   getSingleProduct,
 } from "../controllers/productControllers.js";
-import { handleProductImageUpload } from "../middlewares/regMiddleware.js";
-import { verifyVendorOwnership, userAuthMiddleware } from "../middlewares/authMiddleware.js";
+import {
+  handleProductImageUpload,
+  requestBodyFieldsFilter,
+} from "../middlewares/regMiddleware.js";
+import {
+  verifyVendorOwnership,
+  userAuthMiddleware,
+} from "../middlewares/authMiddleware.js";
 import { upload } from "../utils/usersUtilFns.js";
 
 const router = express.Router();
 
 router.get("/", getProducts);
 router.get("/single", getSingleProduct);
-router.get("/trending", getTrendingProducts); 
+router.get("/trending", getTrendingProducts);
 router.get("/vendor", userAuthMiddleware, getVendorProduct);
-router.post("/vendor", upload.array("images", 5), userAuthMiddleware, handleProductImageUpload, addProduct);
+router.post(
+  "/vendor",
+  upload.array("images", 5),
+  requestBodyFieldsFilter([
+    "productName",
+    "price",
+    "category",
+    "vendorId",
+    "vendorContact",
+    "description",
+    "tags",
+  ]),
+  userAuthMiddleware,
+  handleProductImageUpload,
+  addProduct
+);
 router.post(
   "/vendor/:id",
+  upload.array("images", 5),
+  requestBodyFieldsFilter([
+    "productName",
+    "price",
+    "category",
+    "description",
+    "tags",
+  ]),
   userAuthMiddleware,
   verifyVendorOwnership,
-  upload.array("images", 5),
   handleProductImageUpload,
   updateProduct
 );
@@ -37,4 +65,3 @@ router.delete(
 );
 
 export default router;
-  

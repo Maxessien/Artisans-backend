@@ -25,4 +25,20 @@ const handleProductImageUpload = async (req, res, next) => {
   }
 };
 
-export { handleProductImageUpload };
+/**
+ * Modifies http request body to only contain the specified allowed fields
+ * @param {Array} allowedFields - Array of allowed fields
+ */
+const requestBodyFieldsFilter = (allowedFields) => async(req, res, next)=>{
+  try{
+    const filteredBody = {}
+    allowedFields.forEach((field)=>filteredBody[field]=req.body[field])
+    req.body = filteredBody
+    next()
+  }catch(err){
+    console.log(err)
+    next(err)
+  }
+}
+
+export { handleProductImageUpload, requestBodyFieldsFilter };

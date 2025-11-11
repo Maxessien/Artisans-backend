@@ -4,10 +4,10 @@ import { uploader } from "../configs/cloudinaryConfigs.js";
 const getProducts = async (req, res) => {
   try {
     console.log({ ...req.query }, "fffff");
-    const { page=1, limit=20, sortBy="createdAt", order="desc", minPrice=0, maxPrice=5000000, category } = req.query;
+    const { page=1, limit=20, sortBy="createdAt", order="desc", minPrice=0, maxPrice=5000000, category=false } = req.query;
     const products = await Product.find({
       price: { $gte: minPrice, $lte: maxPrice },
-      category: {$in: category}
+      category: category?.length === 0 ? false : {$in: category}
     })
       .limit(limit)
       .skip((page - 1)*limit)

@@ -12,13 +12,22 @@ import {
   deleteUserProfilePhoto,
   uploadUserProfilePhoto,
 } from "../controllers/userDataControllers.js";
+import { requestBodyFieldsFilter } from "../middlewares/regMiddleware.js";
 
 const router = express.Router();
-router.use(userAuthMiddleware)
 
 router.get("/:id", userAuthMiddleware, getUser);
 router.get("/vendor/:id", getVendorInfo)
-router.post("/:id", userAuthMiddleware, updateUser);
+router.post("/:id",
+  requestBodyFieldsFilter([
+    "displayName",
+    "email",
+    "phoneNumber",
+    "password",
+    "following",
+    "wishlist",
+    "reviewsMade",
+  ]), userAuthMiddleware, updateUser);
 router.post(
   "/:id/uploads",
   upload.single("profilePhoto"),
