@@ -11,7 +11,7 @@ import { connectDB } from "./configs/mongoDBConfig.js";
 import emailjs from "@emailjs/nodejs";
 import { app, server } from "./configs/serverConfig.js";
 import {rateLimit} from "express-rate-limit"
-import ExpressMongoSanitize from "express-mongo-sanitize";
+import expressMongoSanitize from "express-mongo-sanitize";
 
 dotenv.config();
 
@@ -31,7 +31,7 @@ app.use(rateLimit({
   standardHeaders: true
 }))
 
-app.use(ExpressMongoSanitize({replaceWith: "_"}))
+app.use(expressMongoSanitize({replaceWith: "_"}))
 
 emailjs.init({
   publicKey: process.env.EMAILJS_PUBLIC_KEY,
