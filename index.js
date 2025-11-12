@@ -41,7 +41,9 @@ app.use(express.json());
 app.use((req, res, next) => {
   req.body = sanitize(req.body);
   req.params = sanitize(req.params);
-  req.query = sanitize({ ...req.query }); // clone to avoid writing directly
+  // Mutate query object instead of replacing it
+  const cleanQuery = sanitize({ ...req.query });
+  Object.assign(req.query, cleanQuery);
   next();
 });
 
