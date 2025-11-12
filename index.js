@@ -11,7 +11,7 @@ import { connectDB } from "./configs/mongoDBConfig.js";
 import emailjs from "@emailjs/nodejs";
 import { app, server } from "./configs/serverConfig.js";
 import {rateLimit} from "express-rate-limit"
-import expressMongoSanitize from "express-mongo-sanitize";
+import { sanitize } from 'express-mongo-sanitize';
 
 dotenv.config();
 
@@ -31,14 +31,19 @@ app.use(rateLimit({
   standardHeaders: true
 }))
 
-app.use(expressMongoSanitize({replaceWith: "_"}))
-
 emailjs.init({
   publicKey: process.env.EMAILJS_PUBLIC_KEY,
   privateKey: process.env.EMAILJS_PRIVATE_KEY,
 });
 
 app.use(express.json());
+
+app.use((req, res, next) => {
+  req.body = sanitize(req.body);
+  req.params = sanitize(req.params);
+  req.query = sanitize({ ...req.query }); // clone to avoid writing directly
+  next();
+});
 
 
 //express routes
