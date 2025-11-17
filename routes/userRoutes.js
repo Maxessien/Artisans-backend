@@ -27,6 +27,7 @@ router.post("/:id",
     "following",
     "wishlist",
     "reviewsMade",
+    "cart",
   ]), userAuthMiddleware, updateUser);
 router.post(
   "/:id/uploads",

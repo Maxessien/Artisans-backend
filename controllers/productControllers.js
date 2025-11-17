@@ -7,7 +7,7 @@ const getProducts = async (req, res) => {
     const { page=1, limit=20, sortBy="createdAt", order="desc", minPrice=0, maxPrice=5000000, category=false } = req.query;
     const products = await Product.find({
       price: { $gte: minPrice, $lte: maxPrice },
-      category: category?.length === 0 ? false : {$in: category}
+      ...(category && category.length > 0 ? {category: {$in: category}} : {})
     })
       .limit(limit)
       .skip((page - 1)*limit)
@@ -15,7 +15,7 @@ const getProducts = async (req, res) => {
       .lean();
     const count = await Product.countDocuments();
     console.log(count);
-    // console.log(products);
+    console.log(products, "prodsss");
     return res
       .status(202)
       .json({ data: products, totalPages: Math.floor(count / 20) });

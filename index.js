@@ -10,26 +10,28 @@ import dotenv from "dotenv";
 import { connectDB } from "./configs/mongoDBConfig.js";
 import emailjs from "@emailjs/nodejs";
 import { app, server } from "./configs/serverConfig.js";
-import {rateLimit} from "express-rate-limit"
-import { sanitize } from 'express-mongo-sanitize';
+import { rateLimit } from "express-rate-limit";
+import { sanitize } from "express-mongo-sanitize";
 
 dotenv.config();
 
-console.log(process.env.CORS_ORIGIN)
+console.log(process.env.CORS_ORIGIN);
 
 app.use(
   cors({
     origin: process.env.CORS_ORIGIN,
-    methods: ["GET", "POST", "PUT", "DELETE"], 
+    methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true,
-  })
+  }),
 );
 
-app.use(rateLimit({
-  windowMs: 5 * 60 * 1000,
-  limit: 100,
-  standardHeaders: true
-}))
+app.use(
+  rateLimit({
+    windowMs: 5 * 60 * 1000,
+    limit: 100,
+    standardHeaders: true,
+  }),
+);
 
 emailjs.init({
   publicKey: process.env.EMAILJS_PUBLIC_KEY,
@@ -46,7 +48,6 @@ app.use((req, res, next) => {
   Object.assign(req.query, cleanQuery);
   next();
 });
-
 
 //express routes
 app.use("/user", userRoutes);

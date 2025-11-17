@@ -64,7 +64,7 @@ const cancelOrder = async (req, res) => {
       .select("userId")
       .lean();
     if (req.auth.uid !== getOrder.userId) throw new Error("Unauthorised user");
-    const updatedOrder = await Order.updateOne(
+    await Order.updateOne(
       { orderId: req.params.orderId },
       { deliveryStatus: "cancelled" }
     );
