@@ -81,11 +81,11 @@ const addProduct = async (req, res) => {
 
 const updateProduct = async (req, res) => {
   try {
-    const product = await Product.findOne({productId: req.params.productId}).select("images").lean()
+    const product = await Product.findOne({productId: req.params.id}).select("images").lean()
 	console.log(product, "proooooo")
-    await Product.updateOne({productId: req.params.productId}, {
-	name: req.body.productName,
+    await Product.updateOne({productId: req.params.id}, {
 	...req.body,
+	name: req.body.productName,
 	images: req?.images ? [...product.images, ...req.images] : product.images
 	})
     return res.status(200).json({ message: "Updated successfully" });
