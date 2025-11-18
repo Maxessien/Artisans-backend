@@ -58,7 +58,7 @@ router.post(
 );
 router.delete("/:id", userAuthMiddleware, verifyVendorOwnership, deleteProduct);
 router.delete(
-  "/:id/image",
+  "/image/:id",
   userAuthMiddleware,
   verifyVendorOwnership,
   deleteUploadedProductImage
