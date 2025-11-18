@@ -27,10 +27,10 @@ const verifyVendorOwnership = async (req, res, next) => {
   try {
     const { email, phone } = req.auth.isVerified;
     if (!email || !phone) throw new Error("Unverified vendor");
-    const product = await Product.findOne({ productId: req.query.productId })
+    const product = await Product.findOne({ productId: req.params.id })
       .select("vendorId")
       .lean();
-    console.log(req.query.id, product, "pehdfncb");
+    console.log(req.params.id, product, "pehdfncb");
     if (req.auth.uid !== product.vendorId)
       throw new Error("Unauthorised access");
     next();
