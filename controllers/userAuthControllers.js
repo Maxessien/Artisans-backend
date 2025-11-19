@@ -109,6 +109,24 @@ const setLoggedInUserCookie = async (req, res) => {
   }
 };
 
+const deleteUserCookie = async (req, res)=>{
+    const isDevelopment = process.env.NODE_ENV === "development";
+  try {
+    console.log(req.body);
+    res.clearCookie("userSessionToken", {
+        maxAge: 0,
+      path: "/",
+      httpOnly: true,
+      secure: !isDevelopment,
+      sameSite: isDevelopment ? "lax" : "none",
+    });
+    res.status(200).json({ message: "Cookie deleted successfully" });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ message: "Server error" });
+  }
+}
+
 const sendOtp = async (req, res) => {
   try {
     console.log(req.body, "bodyyyyyy");
@@ -169,6 +187,7 @@ export {
   getUser,
   getVendorInfo,
   setLoggedInUserCookie,
+  deleteUserCookie,
   verifyUserCookie,
   sendOtp,
   verifyOtp,
