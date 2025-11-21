@@ -1,5 +1,6 @@
 import { Product } from "../models/productsModel.js";
 import { uploader } from "../configs/cloudinaryConfigs.js";
+import axios from "axios"
 
 const getProducts = async (req, res) => {
   try {
@@ -65,12 +66,14 @@ const addProduct = async (req, res) => {
   try {
     const { email, phone } = req.auth.isVerified;
     if (!email || !phone) throw new Error("Unverified vendor");
+    const {data} = await axios.post(`${process.env.PYTHON_BACKEND_URL}/api/embeddings`, {text: `${req.body.productName}. ${req.body.description}. Category: ${req.body.category}.`})
     await Product.create({
-	name: req.body.productName,
-	...req.body,
+	  name: req.body.productName,
+	  ...req.body,
       images: req.images,
       vendorId: req.auth?.uid,
       vendorContact: { email: req.auth.email },
+      vectorRepresentation: data.embedding
     });
     return res.status(201).json({ message: "Product added successfully" });
   } catch (err) {
