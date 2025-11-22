@@ -1,6 +1,7 @@
 import { Product } from "../models/productsModel.js";
 import { uploader } from "../configs/cloudinaryConfigs.js";
 import axios from "axios"
+import emailjs from "@emailjs/nodejs";
 
 const getProducts = async (req, res) => {
   try {
