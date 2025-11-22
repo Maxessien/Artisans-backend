@@ -79,7 +79,7 @@ const addProduct = async (req, res) => {
         process.env.EMAILJS_SERVICE_ID,
         "template_41f8lkx",
         {
-          product_name: created.name
+          product_name: created.name,
           product_category: created.category,
           product_price: created.price,
           review_link: "https://github.com/Maxessien",
