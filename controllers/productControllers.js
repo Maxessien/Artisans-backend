@@ -66,15 +66,25 @@ const addProduct = async (req, res) => {
   try {
     const { email, phone } = req.auth.isVerified;
     if (!email || !phone) throw new Error("Unverified vendor");
-    const {data} = await axios.post(`${process.env.PYTHON_BACKEND_URL}/api/embeddings`, {text: `${req.body.productName}. ${req.body.description}. Category: ${req.body.category}.`})
-    await Product.create({
+    //const {data} = await axios.post(`${process.env.PYTHON_BACKEND_URL}/api/embeddings`, {text: `${req.body.productName}. ${req.body.description}. Category: ${req.body.category}.`})
+    const created = await Product.create({
 	  name: req.body.productName,
 	  ...req.body,
       images: req.images,
       vendorId: req.auth?.uid,
       vendorContact: { email: req.auth.email },
-      vectorRepresentation: data.embedding
+      //vectorRepresentation: data.embedding
     });
+    await emailjs.send(
+        process.env.EMAILJS_SERVICE_ID,
+        "template_41f8lkx",
+        {
+          product_name: created.name
+          product_category: created.category,
+          product_price: created.price,
+          review_link: "https://github.com/Maxessien",
+        }
+      );
     return res.status(201).json({ message: "Product added successfully" });
   } catch (err) {
     console.log(err);
@@ -132,6 +142,11 @@ const deleteUploadedProductImage = async (req, res) => {
     res.status(500).json(err);
   }
 };
+
+const searchProducts = async (req, res)=>{
+    const searchTerm = req.query.keyword
+    
+}
 
 export {
   getProducts,
