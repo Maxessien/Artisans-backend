@@ -14,7 +14,7 @@ const cleanUpStorage = (pathToFiles) => {
     if (!Array.isArray(pathToFiles) && typeof pathToFiles !== "string")
       throw new Error("Path to file must be a string or array of strings");
     if (Array.isArray(pathToFiles))
-      pathToFiles.forEach((path) => fm.rmSync(path));
+      pathToFiles.forEach((path) => fs.rmSync(path));
     if (typeof pathToFiles === "string") fs.rmSync(pathToFiles);
     return { success: "ok" };
   } catch (err) {
