@@ -113,8 +113,9 @@ const deleteUserCookie = async (req, res)=>{
     const isDevelopment = process.env.NODE_ENV === "development";
   try {
     console.log(req.body);
-    res.clearCookie("userSessionToken", {
-        maxAge: 0,
+    res.clearCookie("userSessionToken",
+    {
+      maxAge: 0,
       path: "/",
       httpOnly: true,
       secure: !isDevelopment,

@@ -48,4 +48,16 @@ const populateUserCart = async (userCart) => {
   }
 };
 
-export { upload, cleanUpStorage, populateUserCart };
+
+const userAllowedFields = (exclusions)=>{
+    if (!Array.isArray(exclusions) && typeof exclusions!=="string") throw new Error("exclusions must be a string or Array of strings")
+    const defaultFields = ["displayName", "userId", "profilePicture", "email", "phoneNumber", "cart", "orderHistory", "following", "wishlist", "reviewsMade", "orderPoints"]
+   const filtered = defaultFields.filter((field)=>{
+        if (Array.isArray(exclusions)) return !exclusions.includes(field)
+        if (typeof exclusions==="string") return field !== exclusions
+    })
+    return filtered
+}
+
+
+export { upload, cleanUpStorage, populateUserCart, userAllowedFields };
