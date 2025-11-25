@@ -24,7 +24,7 @@ const handleProductImageUpload = async (req, res, next) => {
     next(err)
   }
 };
-qà/**
+/**
  * Modifies http request body to only contain the specified allowed fields
  * @param {Array} allowedFields - Array of allowed fields
  */
