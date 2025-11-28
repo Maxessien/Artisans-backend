@@ -8,10 +8,11 @@ import {
   updateProduct,
   deleteUploadedProductImage,
   getSingleProduct,
+  searchProducts,
 } from "../controllers/productControllers.js";
 import {
   handleProductImageUpload,
-  requestBodyFieldsFilter,
+  requestFieldsFilter,
 } from "../middlewares/regMiddleware.js";
 import {
   verifyVendorOwnership,
@@ -24,11 +25,12 @@ const router = express.Router();
 router.get("/", getProducts);
 router.get("/single", getSingleProduct);
 router.get("/trending", getTrendingProducts);
+router.get("/search", searchProducts)
 router.get("/vendor", userAuthMiddleware, getVendorProduct);
 router.post(
   "/vendor",
   upload.array("images", 5),
-  requestBodyFieldsFilter([
+  requestFieldsFilter([
     "productName",
     "price",
     "category",
@@ -44,7 +46,7 @@ router.post(
 router.post(
   "/vendor/:id",
   upload.array("images", 5),
-  requestBodyFieldsFilter([
+  requestFieldsFilter([
     "productName",
     "price",
     "category",

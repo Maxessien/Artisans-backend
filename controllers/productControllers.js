@@ -145,8 +145,16 @@ const deleteUploadedProductImage = async (req, res) => {
 };
 
 const searchProducts = async (req, res)=>{
-    const searchTerm = req.query.keyword
-    
+    try {
+        const searchTerm = req.query.searchTerm
+        if (!searchTerm || typeof searchTerm !== "string") throw new Error("Invalid search term")
+        const {data} = await axios.post(`${process.env.PYTHON_BACKEND_URL}/api/embeddings`, {text: searchTerm})
+        const searchResults = await Product.find({$vectorSearch: {queryVector: data.embedding, path: "vectorRepresentation"}}).lean()
+        return res.status(200).json(searchResults)
+    } catch (err) {
+        console.log(err)
+        return res.status(500).json(err)
+    }
 }
 
 export {
@@ -158,4 +166,5 @@ export {
   updateProduct,
   deleteProduct,
   deleteUploadedProductImage,
+  searchProducts,
 };

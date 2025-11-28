@@ -8,13 +8,13 @@ import {
   verifyUserCookie,
 } from "../controllers/userAuthControllers.js";
 import { userAuthMiddleware } from "../middlewares/authMiddleware.js";
-import { requestBodyFieldsFilter } from "../middlewares/regMiddleware.js";
+import { requestFieldsFilter } from "../middlewares/regMiddleware.js";
 
 const router = express.Router();
 
 router.post(
   "/register",
-  requestBodyFieldsFilter(["displayName", "email", "phoneNumber", "password"]),
+  requestFieldsFilter(["displayName", "email", "phoneNumber", "password"]),
   createUser
 );
 router.get("/verify", userAuthMiddleware, verifyUserCookie);
