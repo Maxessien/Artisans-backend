@@ -149,7 +149,17 @@ const searchProducts = async (req, res)=>{
         const searchTerm = req.query.searchTerm
         if (!searchTerm || typeof searchTerm !== "string") throw new Error("Invalid search term")
         const {data} = await axios.post(`${process.env.PYTHON_BACKEND_URL}/api/embeddings`, {text: searchTerm})
-        const searchResults = await Product.find({$vectorSearch: {queryVector: data.embedding, path: "vectorRepresentation"}}).lean()
+        const searchResults = await Product.aggregate([
+              {
+                $vectorSearch: {
+                  index: "default",
+                  queryVector: data.embedding,
+                  path: "vectorRepresentation",
+                  numCandidates: 100,
+                  limit: 10
+                }
+              }
+            ]);
         return res.status(200).json(searchResults)
     } catch (err) {
         console.log(err)
