@@ -167,7 +167,7 @@ const searchProducts = async (req, res)=>{
     }
 }
 
-export {
+export {n
   getProducts,
   getSingleProduct,
   getTrendingProducts,
