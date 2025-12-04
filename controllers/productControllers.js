@@ -1,18 +1,28 @@
 import { Product } from "../models/productsModel.js";
 import { uploader } from "../configs/cloudinaryConfigs.js";
-import axios from "axios"
+import axios from "axios";
 import emailjs from "@emailjs/nodejs";
 
 const getProducts = async (req, res) => {
   try {
     console.log({ ...req.query }, "fffff");
-    const { page=1, limit=20, sortBy="createdAt", order="desc", minPrice=0, maxPrice=5000000, category=false } = req.query;
+    const {
+      page = 1,
+      limit = 20,
+      sortBy = "createdAt",
+      order = "desc",
+      minPrice = 0,
+      maxPrice = 5000000,
+      category = false,
+    } = req.query;
     const products = await Product.find({
       price: { $gte: minPrice, $lte: maxPrice },
-      ...(category && category.length > 0 ? {category: {$in: category}} : {})
+      ...(category && category.length > 0
+        ? { category: { $in: category } }
+        : {}),
     })
       .limit(limit)
-      .skip((page - 1)*limit)
+      .skip((page - 1) * limit)
       .sort([[sortBy, order]])
       .lean();
     const count = await Product.countDocuments();
@@ -39,7 +49,7 @@ const getSingleProduct = async (req, res) => {
 
 const getTrendingProducts = async (req, res) => {
   try {
-    console.log("stateg", req.headers)
+    console.log("stateg", req.headers);
     const trendingProducts = await Product.find()
       .sort([["ratings", "desc"]])
       .limit(6)
@@ -69,23 +79,19 @@ const addProduct = async (req, res) => {
     if (!email || !phone) throw new Error("Unverified vendor");
     //const {data} = await axios.post(`${process.env.PYTHON_BACKEND_URL}/api/embeddings`, {text: `${req.body.productName}. ${req.body.description}. Category: ${req.body.category}.`})
     const created = await Product.create({
-	  name: req.body.productName,
-	  ...req.body,
+      name: req.body.productName,
+      ...req.body,
       images: req.images,
       vendorId: req.auth?.uid,
       vendorContact: { email: req.auth.email },
       //vectorRepresentation: data.embedding
     });
-    await emailjs.send(
-        process.env.EMAILJS_SERVICE_ID,
-        "template_41f8lkx",
-        {
-          product_name: created.name,
-          product_category: created.category,
-          product_price: created.price,
-          review_link: "https://github.com/Maxessien",
-        }
-      );
+    await emailjs.send(process.env.EMAILJS_SERVICE_ID, "template_41f8lkx", {
+      product_name: created.name,
+      product_category: created.category,
+      product_price: created.price,
+      review_link: "https://github.com/Maxessien",
+    });
     return res.status(201).json({ message: "Product added successfully" });
   } catch (err) {
     console.log(err);
@@ -95,13 +101,20 @@ const addProduct = async (req, res) => {
 
 const updateProduct = async (req, res) => {
   try {
-    const product = await Product.findOne({productId: req.params.id}).select("images").lean()
-	console.log(product, "proooooo")
-    await Product.updateOne({productId: req.params.id}, {
-	...req.body,
-	name: req.body.productName,
-	images: req?.images ? [...product.images, ...req.images] : product.images
-	})
+    const product = await Product.findOne({ productId: req.params.id })
+      .select("images")
+      .lean();
+    console.log(product, "proooooo");
+    await Product.updateOne(
+      { productId: req.params.id },
+      {
+        ...req.body,
+        name: req.body.productName,
+        images: req?.images
+          ? [...product.images, ...req.images]
+          : product.images,
+      }
+    );
     return res.status(200).json({ message: "Updated successfully" });
   } catch (err) {
     console.log(err);
@@ -137,35 +150,59 @@ const deleteUploadedProductImage = async (req, res) => {
       }
     );
     await uploader.destroy(req.query.publicId);
-    return res.status(200).json({message: "Updated successfully"});
+    return res.status(200).json({ message: "Updated successfully" });
   } catch (err) {
     console.log(err);
     res.status(500).json(err);
   }
 };
 
-const searchProducts = async (req, res)=>{
-    try {
-        const searchTerm = req.query.searchTerm
-        if (!searchTerm || typeof searchTerm !== "string") throw new Error("Invalid search term")
-        const {data} = await axios.post(`${process.env.PYTHON_BACKEND_URL}/api/embeddings`, {text: searchTerm})
-        const searchResults = await Product.aggregate([
-              {
-                $vectorSearch: {
-                  index: "default",
-                  queryVector: data.embedding,
-                  path: "vectorRepresentation",
-                  numCandidates: 100,
-                  limit: 10
-                }
-              }
-            ]);
-        return res.status(200).json(searchResults)
-    } catch (err) {
-        console.log(err)
-        return res.status(500).json(err)
-    }
-}
+const searchProducts = async (req, res) => {
+  try {
+    const {
+      searchTerm,
+      page = 1,
+      limit = 20,
+      sortBy = "createdAt",
+      order = "desc",
+      minPrice = 0,
+      maxPrice = 5000000,
+      category = false,
+    } = req.query;
+    if (!searchTerm || typeof searchTerm !== "string")
+      throw new Error("Invalid search term");
+    const { data } = await axios.post(
+      `${process.env.PYTHON_BACKEND_URL}/api/embeddings`,
+      { text: searchTerm }
+    );
+    const searchResults = await Product.aggregate([
+      {
+        $vectorSearch: {
+          index: "default",
+          queryVector: data.embedding,
+          path: "vectorRepresentation",
+          numCandidates: 100,
+          limit: 10,
+        },
+      },
+      {
+        $match: {
+          price: { $gte: minPrice, $lte: maxPrice },
+          ...(category && category.length > 0
+            ? { category: { $in: category } }
+            : {}),
+        },
+      },
+      { $sort: { [sortBy]: order === "desc" ? -1 : 1 } },
+      { $limit: { limit } },
+      { $skip: page * limit - limit },
+    ]);
+    return res.status(200).json(searchResults);
+  } catch (err) {
+    console.log(err);
+    return res.status(500).json(err);
+  }
+};
 
 export {
   getProducts,

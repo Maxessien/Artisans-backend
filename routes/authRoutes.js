@@ -19,7 +19,7 @@ router.post(
 );
 router.get("/verify", userAuthMiddleware, verifyUserCookie);
 router.post("/login", setLoggedInUserCookie);
-router.delete("logout", deleteUserCookie)
+router.delete("/logout", deleteUserCookie)
 router.post("/otp", userAuthMiddleware, sendOtp);
 router.post("/otp/verify", userAuthMiddleware, verifyOtp);
 

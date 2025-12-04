@@ -12,6 +12,7 @@ import emailjs from "@emailjs/nodejs";
 import { app, server } from "./configs/serverConfig.js";
 import { rateLimit } from "express-rate-limit";
 import { sanitize } from "express-mongo-sanitize";
+import { auth } from "./configs/fbConfigs.js";
 
 dotenv.config();
 
@@ -56,6 +57,13 @@ app.use("/category", categoriesRoutes);
 app.use("/auth", authRoutes);
 app.use("/orders", ordersRoutes);
 app.use("/chat", chatRoutes);
+
+try {
+  const users = await auth.listUsers()
+  console.log(users)
+} catch (err) {
+  console.log(err)
+}
 
 const PORT = process.env.PORT || 5050;
 
