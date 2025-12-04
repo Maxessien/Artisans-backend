@@ -17,7 +17,7 @@ const getProducts = async (req, res) => {
     } = req.query;
     const products = await Product.find({
       price: { $gte: minPrice, $lte: maxPrice },
-      ...(category && category.length > 0
+      ...(category && Array.isArray(category) && category.length > 0
         ? { category: { $in: category } }
         : {}),
     })
@@ -188,7 +188,7 @@ const searchProducts = async (req, res) => {
       {
         $match: {
           price: { $gte: minPrice, $lte: maxPrice },
-          ...(category && category.length > 0
+          ...(category && Array.isArray(category) && category.length > 0
             ? { category: { $in: category } }
             : {}),
         },

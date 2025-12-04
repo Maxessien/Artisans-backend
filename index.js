@@ -13,6 +13,8 @@ import { app, server } from "./configs/serverConfig.js";
 import { rateLimit } from "express-rate-limit";
 import { sanitize } from "express-mongo-sanitize";
 import { auth } from "./configs/fbConfigs.js";
+import axios from "axios";
+import { Product } from "./models/productsModel.js";
 
 dotenv.config();
 
@@ -23,7 +25,7 @@ app.use(
     origin: process.env.CORS_ORIGIN,
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true,
-  }),
+  })
 );
 
 app.use(
@@ -31,7 +33,7 @@ app.use(
     windowMs: 5 * 60 * 1000,
     limit: 100,
     standardHeaders: true,
-  }),
+  })
 );
 
 emailjs.init({
@@ -58,16 +60,25 @@ app.use("/auth", authRoutes);
 app.use("/orders", ordersRoutes);
 app.use("/chat", chatRoutes);
 
-try {
-  const users = await auth.listUsers()
-  console.log(users)
-} catch (err) {
-  console.log(err)
-}
+
+
+(async () => {
+  try {
+    await connectDB();
+    const users = await auth.listUsers();
+    // const { data } = await axios.get(
+    //   "https://lasu-mart-backend.onrender.com/product"
+    // );
+    // await Product.deleteMany();
+    // const added = await Product.insertMany(data.data);
+    // console.log(added);
+    console.log(users);
+  } catch (err) {
+    console.log(err);
+  }
+})();
 
 const PORT = process.env.PORT || 5050;
-
-connectDB();
 
 server.listen(PORT, "0.0.0.0", () => {
   console.log("Server running on port", PORT);
