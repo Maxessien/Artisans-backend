@@ -4,7 +4,13 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "dev": "nodemon index.js"
+    "dev": "nodemon index.js",
+    "test": "vitest",
+    "test:watch": "vitest --watch",
+    "test:coverage": "vitest --coverage",
+    "test:ui": "vitest --ui",
+    "test:unit": "vitest tests/unit",
+    "test:integration": "vitest tests/integration"
   },
   "keywords": [],
   "author": "",
@@ -12,9 +18,9 @@
   "description": "",
   "dependencies": {
     "@emailjs/nodejs": "^5.0.2",
+    "axios": "^1.11.0",
     "cloudinary": "^2.7.0",
     "cors": "^2.8.5",
-    "axios": "^1.11.0",
     "dotenv": "^17.2.1",
     "express": "^5.1.0",
     "express-mongo-sanitize": "^2.2.0",
@@ -26,5 +32,9 @@
     "multer": "^2.0.2",
     "nodemon": "^3.1.10",
     "socket.io": "^4.8.1"
+  },
+  "devDependencies": {
+    "supertest": "^7.1.4",
+    "vitest": "^4.0.15"
   }
 }
