@@ -163,18 +163,27 @@ const searchProducts = async (req, res) => {
       searchTerm,
       page = 1,
       limit = 20,
-      sortBy = "createdAt",
-      order = "desc",
-      minPrice = 0,
+      sortBy,
+      order,
+      minPrice = 10,
       maxPrice = 5000000,
       category = false,
     } = req.query;
+    console.log({ ...req.query });
     if (!searchTerm || typeof searchTerm !== "string")
       throw new Error("Invalid search term");
     const { data } = await axios.post(
       `${process.env.PYTHON_BACKEND_URL}/api/embeddings`,
       { text: searchTerm }
     );
+    const sortFilter =
+      sortBy?.length > 0 &&
+      ["createdAt", "ratings", "price"].includes(sortBy) &&
+      order?.length > 0 &&
+      ["asc", "desc"].includes(order)
+        ? [{ $sort: { [sortBy]: order === "desc" ? -1 : 1 } }]
+        : {};
+    console.log(...sortFilter, limit, page)
     const searchResults = await Product.aggregate([
       {
         $vectorSearch: {
@@ -182,22 +191,20 @@ const searchProducts = async (req, res) => {
           queryVector: data.embedding,
           path: "vectorRepresentation",
           numCandidates: 100,
-          limit: 10,
+          limit: limit,
+          filter: {
+            price: { $gte: Number(minPrice), $lte: Number(maxPrice) },
+            ...(category && Array.isArray(category) && category.length > 0
+              ? { category: { $in: category } }
+              : {}),
+          },
         },
       },
-      {
-        $match: {
-          price: { $gte: minPrice, $lte: maxPrice },
-          ...(category && Array.isArray(category) && category.length > 0
-            ? { category: { $in: category } }
-            : {}),
-        },
-      },
-      { $sort: { [sortBy]: order === "desc" ? -1 : 1 } },
-      { $limit: { limit } },
-      { $skip: page * limit - limit },
+      // { $skip: Number(page) * Number(limit) - Number(limit) },
+      // ...sortFilter
     ]);
-    return res.status(200).json(searchResults);
+    console.log(searchResults, "results");
+    return res.status(200).json({ data: searchResults, totalPages: 1 });
   } catch (err) {
     console.log(err);
     return res.status(500).json(err);
