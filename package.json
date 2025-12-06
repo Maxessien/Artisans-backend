@@ -20,6 +20,7 @@
     "@emailjs/nodejs": "^5.0.2",
     "axios": "^1.11.0",
     "cloudinary": "^2.7.0",
+    "cloudinary-emulator": "file:cloudinary-emulator-1.0.0.tgz",
     "cors": "^2.8.5",
     "dotenv": "^17.2.1",
     "express": "^5.1.0",

@@ -15,6 +15,8 @@ import { sanitize } from "express-mongo-sanitize";
 import { auth } from "./configs/fbConfigs.js";
 import axios from "axios";
 import { Product } from "./models/productsModel.js";
+import { startEmulator } from 'cloudinary-emulator';
+import { uploader } from "./configs/cloudinaryConfigs.js";
 
 dotenv.config();
 
@@ -65,18 +67,22 @@ app.use("/chat", chatRoutes);
 (async () => {
   try {
     await connectDB();
-    const users = await auth.listUsers();
+    // const users = await auth.listUsers();
+    const upload = await uploader.upload("C:/Users/Dell/Downloads/a6f5483358b53665a5e0a90241bfe85ef0abd88d.jpg")
+    console.log(upload)
     // const { data } = await axios.get(
     //   "https://lasu-mart-backend.onrender.com/product"
     // );
     // await Product.deleteMany();
     // const added = await Product.insertMany(data.data);
     // console.log(added);
-    console.log(users);
+    // console.log(users);
   } catch (err) {
     console.log(err);
   }
 })();
+
+process.env.NODE_ENV === "development" ? startEmulator(3000) : null
 
 const PORT = process.env.PORT || 5050;
 
