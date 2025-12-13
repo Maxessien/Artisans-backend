@@ -7,7 +7,7 @@ import emailjs from "@emailjs/nodejs";
 
 const createUser = async (req, res) => {
   try {
-	console.log(req.body)
+    console.log(req.body);
     const user = await auth.createUser({
       ...req.body,
       phoneNumber: `+234${req.body.phoneNumber}`,
@@ -47,21 +47,26 @@ const getUser = async (req, res) => {
   }
 };
 
-const getVendorInfo = async(req, res)=>{
-  try{
-    const vendor = await User.findOne({userId: req.params.id}).select(["displayName", "email", "phoneNumber"]).lean()
-    return res.status(200).json(vendor)
-  }catch(err){
-    console.log(err)
-    return res.status(500).json(err)
+const getVendorInfo = async (req, res) => {
+  try {
+    const vendor = await User.findOne({ userId: req.params.id })
+      .select(["displayName", "email", "phoneNumber"])
+      .lean();
+    return res.status(200).json(vendor);
+  } catch (err) {
+    console.log(err);
+    return res.status(500).json(err);
   }
-}
+};
 
 const updateUser = async (req, res) => {
   try {
     console.log(req.auth);
     if (!req.query?.type || req.query?.type !== "dbOnly") {
-      const user = await auth.updateUser(req.auth.uid, {...req.body, phone_number: req.body.phoneNumber});
+      const user = await auth.updateUser(req.auth.uid, {
+        ...req.body,
+        phone_number: req.body.phoneNumber,
+      });
     }
     if (!req.query?.type || req.query?.type !== "authOnly") {
       const updatedUser = await User.findOneAndUpdate(
@@ -109,12 +114,11 @@ const setLoggedInUserCookie = async (req, res) => {
   }
 };
 
-const deleteUserCookie = async (req, res)=>{
-    const isDevelopment = process.env.NODE_ENV === "development";
+const deleteUserCookie = async (req, res) => {
+  const isDevelopment = process.env.NODE_ENV === "development";
   try {
     console.log(req.body);
-    res.clearCookie("userSessionToken",
-    {
+    res.clearCookie("userSessionToken", {
       maxAge: 0,
       path: "/",
       httpOnly: true,
@@ -126,7 +130,7 @@ const deleteUserCookie = async (req, res)=>{
     console.log(err);
     res.status(500).json({ message: "Server error" });
   }
-}
+};
 
 const sendOtp = async (req, res) => {
   try {
@@ -135,7 +139,7 @@ const sendOtp = async (req, res) => {
       otpType: req.body.type,
       reciever: req.body.value,
     });
-	console.log(data)
+    console.log(data);
     if (req.body.type === "email" && process.env.NODE_ENV !== "development") {
       await emailjs.send(
         process.env.EMAILJS_SERVICE_ID,
@@ -163,15 +167,15 @@ const verifyOtp = async (req, res) => {
     const stillValid = expiryTime ? expiryTime - Date.now() > 10000 : false;
     if (
       !value ||
-      !stillValid ||
-      req.auth[req.body.type === "phoneNumber" ? "phone_number" : "email"] !==
-        reciever
+      !stillValid
     )
       throw new Error("Invalid Otp");
-    await auth.setCustomUserClaims(req.auth.uid, {
+      console.log(reciever)
+    const {userId} = await User.findOne({email: reciever}).lean()
+    console.log(userId)
+    await auth.setCustomUserClaims(userId, {
       role: "user",
       isVerified: {
-        ...req.auth.isVerified,
         ...(req.body.type === "email" ? { email: true } : { phone: true }),
       },
     });

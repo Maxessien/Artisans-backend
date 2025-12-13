@@ -68,8 +68,6 @@ app.use("/chat", chatRoutes);
   try {
     await connectDB();
     // const users = await auth.listUsers();
-    const upload = await uploader.upload("C:/Users/Dell/Downloads/a6f5483358b53665a5e0a90241bfe85ef0abd88d.jpg")
-    console.log(upload)
     // const { data } = await axios.get(
     //   "https://lasu-mart-backend.onrender.com/product"
     // );
@@ -82,7 +80,7 @@ app.use("/chat", chatRoutes);
   }
 })();
 
-process.env.NODE_ENV === "development" ? startEmulator(3000) : null
+process.env.NODE_ENV === "development" ? startEmulator(4000) : null
 
 const PORT = process.env.PORT || 5050;
 

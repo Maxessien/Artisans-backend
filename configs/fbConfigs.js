@@ -1,9 +1,9 @@
 import admin from "firebase-admin";
 import serviceAccount from "./serviceAccount.js";
 
-if (process.env.NODE_ENV === "development") {
-    process.env.FIREBASE_AUTH_EMULATOR_HOST = "127.0.0.1:9095";
-}
+// if (process.env.NODE_ENV === "development") {
+// }
+process.env.FIREBASE_AUTH_EMULATOR_HOST = "127.0.0.1:9099";
 
 console.log(serviceAccount)
 
