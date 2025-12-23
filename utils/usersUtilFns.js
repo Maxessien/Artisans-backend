@@ -1,7 +1,7 @@
 import fs from "fs";
-import path from "path";
 import multer from "multer";
 import { Product } from "../models/productsModel.js";
+import crypto from 'crypto';
 
 const upload = multer({ dest: "uploads" });
 
@@ -59,5 +59,22 @@ const userAllowedFields = (exclusions)=>{
     return filtered
 }
 
+const generateUUID = ()=>{
+  return crypto.randomUUID()
+}
 
-export { upload, cleanUpStorage, populateUserCart, userAllowedFields };
+const addedProductEmail = async (name, category, price)=>{
+  try {
+    await emailjs.send(process.env.EMAILJS_SERVICE_ID, "template_41f8lkx", {
+      product_name: name,
+      product_category: category,
+      product_price: price,
+      review_link: "https://github.com/Maxessien",
+    });
+  } catch (err) {
+    console.log(err)
+    throw err
+  }
+}
+
+export { upload, cleanUpStorage, populateUserCart, userAllowedFields, generateUUID, addedProductEmail };

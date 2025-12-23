@@ -1,9 +1,8 @@
 import { findError } from "../fbAuthErrors.js";
 import { auth } from "../configs/fbConfigs.js";
-import { User } from "../models/usersModel.js";
-import { populateUserCart } from "../utils/usersUtilFns.js";
-import { AuthOtp } from "../models/authOtpModel.js";
+import crypto from "crypto";
 import emailjs from "@emailjs/nodejs";
+import pool from "./../configs/sqlConnection";
 
 const createUser = async (req, res) => {
   try {
@@ -14,14 +13,17 @@ const createUser = async (req, res) => {
     });
     await auth.setCustomUserClaims(user.uid, {
       role: "user",
-      isVerified: { email: false, phone: true },
+      isVerified: { email: false, phone: false },
     });
-    const dbStore = await User.create({
-      userId: user.uid,
-      email: user.email,
-      phoneNumber: user.phoneNumber,
-      displayName: user.displayName,
-    });
+    const query =
+      "INSERT INTO users (userId, email, displayName, phoneNumber, role) VALUES ($1, $2, $3, $4, $5) RETURNING *";
+    const dbStore = await pool.query(query, [
+      user.uid,
+      user.email,
+      user.displayName,
+      user.phoneNumber,
+      "user",
+    ]);
     console.log(dbStore);
     return res.status(201).json({ message: "Account created successfully" });
   } catch (err) {
@@ -37,46 +39,29 @@ const createUser = async (req, res) => {
 const getUser = async (req, res) => {
   try {
     const uid = req.auth.uid;
-    const user = await User.findOne({ userId: uid }).lean();
-    if (!user) throw new Error("User not found");
-    const populatedCart = await populateUserCart(user.cart);
-    return res.status(202).json({ ...user, cart: populatedCart });
+    const query = `SELECT users.userId, email, displayName, phoneNumber, pictureUrl, preferredPaymentMethod,
+                    (SELECT COUNT(*) FROM carts WHERE carts.userId = $1) AS totalCartItems
+                    FROM users WHERE users.userId = $1`;
+    const user = await pool.query(query, [uid]);
+    return res.status(202).json(user.rows[0] || []);
   } catch (err) {
     console.log(err);
     return res.status(404).json({ message: "User not found" });
   }
 };
 
-const getVendorInfo = async (req, res) => {
-  try {
-    const vendor = await User.findOne({ userId: req.params.id })
-      .select(["displayName", "email", "phoneNumber"])
-      .lean();
-    return res.status(200).json(vendor);
-  } catch (err) {
-    console.log(err);
-    return res.status(500).json(err);
-  }
-};
-
 const updateUser = async (req, res) => {
   try {
-    console.log(req.auth);
-    if (!req.query?.type || req.query?.type !== "dbOnly") {
-      const user = await auth.updateUser(req.auth.uid, {
-        ...req.body,
-        phone_number: req.body.phoneNumber,
-      });
-    }
-    if (!req.query?.type || req.query?.type !== "authOnly") {
-      const updatedUser = await User.findOneAndUpdate(
-        { userId: req.auth.uid },
-        req.body,
-        { new: true }
-      ).lean();
-      return res.status(200).json({ ...updatedUser });
-    }
-    return res.status(200).json({ message: "Update Successful" });
+    const { displayName, address, preferredPaymentMethod } = req.body;
+    const query =
+      "UPDATE users SET displayName = $1, address = $2, preferredPaymentMethod = $3 WHERE userId = $4 RETURNING *";
+    const updatedUser = await pool.query(query, [
+      displayName,
+      address,
+      preferredPaymentMethod,
+      req.auth.uid,
+    ]);
+    return res.status(200).json(updatedUser.rows[0] || {});
   } catch (err) {
     const errorMessage = findError(err.code);
     console.log(errorMessage);
@@ -88,8 +73,12 @@ const updateUser = async (req, res) => {
 
 const verifyUserCookie = async (req, res) => {
   try {
-    const user = await User.findOne({ userId: req.auth.uid }).lean();
-    return res.status(200).json({ ...req.auth, ...user });
+    const uid = req.auth.uid;
+    const query = `SELECT users.userId, email, displayName, phoneNumber, pictureUrl, preferredPaymentMethod,
+                    (SELECT COUNT(*) FROM carts WHERE carts.userId = $1) AS totalCartItems
+                    FROM users WHERE users.userId = $1`;
+    const user = await pool.query(query, [uid]);
+    return res.status(200).json({ ...req.auth, ...(user.rows[0] || {}) });
   } catch (err) {
     console.log(err);
     return res.status(500).json({ message: "Server error" });
@@ -107,10 +96,10 @@ const setLoggedInUserCookie = async (req, res) => {
       secure: !isDevelopment,
       sameSite: isDevelopment ? "lax" : "none",
     });
-    res.status(200).json({ message: "Cookie set successfully" });
+    return res.status(200).json({ message: "Cookie set successfully" });
   } catch (err) {
     console.log(err);
-    res.status(500).json({ message: "Server error" });
+    return res.status(500).json({ message: "Server error" });
   }
 };
 
@@ -125,28 +114,29 @@ const deleteUserCookie = async (req, res) => {
       secure: !isDevelopment,
       sameSite: isDevelopment ? "lax" : "none",
     });
-    res.status(200).json({ message: "Cookie deleted successfully" });
+    return res.status(200).json({ message: "Cookie deleted successfully" });
   } catch (err) {
     console.log(err);
-    res.status(500).json({ message: "Server error" });
+    return res.status(500).json({ message: "Server error" });
   }
 };
 
 const sendOtp = async (req, res) => {
   try {
-    console.log(req.body, "bodyyyyyy");
-    const data = await AuthOtp.create({
-      otpType: req.body.type,
-      reciever: req.body.value,
-    });
+    const { type, reciever } = req.body;
+    const value = crypto.randomInt(100000, 1000000).toString();
+    const data = await pool.query(
+      "INSERT INTO authOtps (reciever, otpType, value) VALUES ($1, $2, $3) RETURNING *",
+      [reciever, type, value]
+    );
     console.log(data);
     if (req.body.type === "email" && process.env.NODE_ENV !== "development") {
       await emailjs.send(
         process.env.EMAILJS_SERVICE_ID,
         process.env.EMAILJS_TEMPLATE_ID,
         {
-          email: req.body.value,
-          passcode: data.value,
+          email: reciever,
+          passcode: value,
           time: "5 minutes",
           companyName: "Lasu Mart",
         }
@@ -155,34 +145,42 @@ const sendOtp = async (req, res) => {
     return res.status(201).json({ message: "Otp sent" });
   } catch (err) {
     console.log(err);
-    res.status(500).json(err);
+    return res.status(500).json(err);
   }
 };
 
 const verifyOtp = async (req, res) => {
   try {
-    const { value, expiryTime, reciever } = await AuthOtp.findOne({
-      value: req.body.otpValue,
-    }).lean();
-    const stillValid = expiryTime ? expiryTime - Date.now() > 10000 : false;
-    if (
-      !value ||
-      !stillValid
-    )
-      throw new Error("Invalid Otp");
-      console.log(reciever)
-    const {userId} = await User.findOne({email: reciever}).lean()
-    console.log(userId)
-    await auth.setCustomUserClaims(userId, {
+    const query = `SELECT value, otpType, reciever FROM authOtps WHERE value = $1 AND expiryTime > NOW()`;
+    const otp = await pool.query(query, [req.body.otpValue]);
+    const isValid = otp?.rows?.length > 0;
+    if (!isValid) throw new Error("Invalid OTP");
+    const user = await pool.query(
+      `SELECT userId FROM users WHERE ${
+        otp.rows[0].otpType === "email" ? "email = $1" : "phoneNumber = $1"
+      }`,
+      [otp.rows[0].reciever]
+    );
+    // Fetch existing custom claims using Admin SDK
+    const userRecord = await auth.getUser(user.rows[0].userId);
+    const existingClaims = userRecord.customClaims || {};
+    const existingVerified = existingClaims.isVerified || { email: false, phone: false };
+    
+    // Merge with new verification
+    await auth.setCustomUserClaims(user.rows[0].userId, {
       role: "user",
       isVerified: {
-        ...(req.body.type === "email" ? { email: true } : { phone: true }),
+        ...existingVerified,
+        ...(otp.rows[0].otpType === "email" ? { email: true } : { phone: true }),
       },
     });
-    res.status(200).json({ message: "Verfication successful" });
+    await pool.query("DELETE FROM authOtps WHERE value = $1", [
+      req.body.otpValue,
+    ]);
+    return res.status(200).json({ message: "Verification successful" });
   } catch (err) {
     console.log(err);
-    res.status(500).json(err);
+    return res.status(500).json(err);
   }
 };
 
@@ -190,7 +188,6 @@ export {
   createUser,
   updateUser,
   getUser,
-  getVendorInfo,
   setLoggedInUserCookie,
   deleteUserCookie,
   verifyUserCookie,

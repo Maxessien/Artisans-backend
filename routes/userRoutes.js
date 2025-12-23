@@ -9,7 +9,6 @@ import { upload } from "../utils/usersUtilFns.js";
 import {
   addToCart,
   deleteFromCart,
-  deleteUserProfilePhoto,
   uploadUserProfilePhoto,
 } from "../controllers/userDataControllers.js";
 import { requestFieldsFilter } from "../middlewares/regMiddleware.js";
@@ -17,17 +16,9 @@ import { requestFieldsFilter } from "../middlewares/regMiddleware.js";
 const router = express.Router();
 
 router.get("/:id", userAuthMiddleware, getUser);
-router.get("/vendor/:id", getVendorInfo)
 router.post("/:id",
   requestFieldsFilter([
     "displayName",
-    "email",
-    "phoneNumber",
-    "password",
-    "following",
-    "wishlist",
-    "reviewsMade",
-    "cart",
   ]), userAuthMiddleware, updateUser);
 router.post(
   "/:id/uploads",
@@ -35,7 +26,6 @@ router.post(
   userAuthMiddleware,
   uploadUserProfilePhoto
 );
-router.delete("/:id/uploads", userAuthMiddleware, deleteUserProfilePhoto);
 router.post("/:id/cart", userAuthMiddleware, addToCart);
 router.delete("/:id/cart/:productId", userAuthMiddleware, deleteFromCart);
 

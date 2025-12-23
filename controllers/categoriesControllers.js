@@ -2,9 +2,10 @@ import { Category } from "../models/categoriesModel.js"
 
 const getCategories = async(req, res)=>{
     try {
-        const categories = await Category.find().select({name: 1}).lean()
+        const query = "SELECT * FROM categories"
+        const categories = await pool.query(query)
         console.log(categories)
-        res.status(202).json(categories)
+        res.status(202).json(categories.rows)
     } catch (err) {
         console.log(err)
         res.status(500).json(err)
@@ -13,7 +14,8 @@ const getCategories = async(req, res)=>{
 
 const addCategory = async(req, res)=>{
     try {
-        await Category.create({name: req.body.newCategory})
+        const query = "INSERT INTO categories VALUES ($1, $2)"
+        await pool.query(query, [req.body.title, req.body.imageUrl])
         return res.status(201).json({message: "Categroy added successfully"})
     } catch (err) {
         console.log(err)
@@ -23,7 +25,7 @@ const addCategory = async(req, res)=>{
 
 const deleteCategory = async(req, res)=>{
     try {
-        await Category.deleteOne({name: req.body.category})
+        await pool.query("DELETE FROM categories WHERE title = $1", [req.params.title])
         return res.status(201).json({message: "Categroy deleted successfully"})
     } catch (err) {
         console.log(err)
