@@ -1,13 +1,13 @@
-import { Category } from "../models/categoriesModel.js"
+import logger from "../utils/logger.js"
 
 const getCategories = async(req, res)=>{
     try {
         const query = "SELECT * FROM categories"
         const categories = await pool.query(query)
-        console.log(categories)
+        logger.log("getCategories result", categories);
         res.status(202).json(categories.rows)
     } catch (err) {
-        console.log(err)
+        logger.error("getCategories error", err);
         res.status(500).json(err)
     }
 }
@@ -18,7 +18,7 @@ const addCategory = async(req, res)=>{
         await pool.query(query, [req.body.title, req.body.imageUrl])
         return res.status(201).json({message: "Categroy added successfully"})
     } catch (err) {
-        console.log(err)
+        logger.error("addCategory error", err);
         res.status(500).json(err)
     }
 }
@@ -28,9 +28,9 @@ const deleteCategory = async(req, res)=>{
         await pool.query("DELETE FROM categories WHERE title = $1", [req.params.title])
         return res.status(201).json({message: "Categroy deleted successfully"})
     } catch (err) {
-        console.log(err)
+        logger.error("deleteCategory error", err);
         res.status(500).json(err)
     }
 }
 
-export {getCategories, addCategory, deleteCategory}
+export { addCategory, deleteCategory, getCategories }

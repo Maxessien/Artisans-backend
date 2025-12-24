@@ -1,12 +1,13 @@
-import { findError } from "../fbAuthErrors.js";
-import { auth } from "../configs/fbConfigs.js";
-import crypto from "crypto";
 import emailjs from "@emailjs/nodejs";
+import crypto from "crypto";
+import { auth } from "../configs/fbConfigs.js";
+import { findError } from "../fbAuthErrors.js";
+import logger from "../utils/logger.js";
 import pool from "./../configs/sqlConnection";
 
 const createUser = async (req, res) => {
   try {
-    console.log(req.body);
+    logger.log("createUser body", req.body);
     const user = await auth.createUser({
       ...req.body,
       phoneNumber: `+234${req.body.phoneNumber}`,
@@ -24,12 +25,12 @@ const createUser = async (req, res) => {
       user.phoneNumber,
       "user",
     ]);
-    console.log(dbStore);
+    logger.log("createUser dbStore", dbStore);
     return res.status(201).json({ message: "Account created successfully" });
   } catch (err) {
-    console.log(err);
+    logger.error("createUser error", err);
     const errorMessage = findError(err.code);
-    console.log(errorMessage);
+    logger.log("createUser errorMessage", errorMessage);
     return res.status(errorMessage?.statusCode || 500).json({
       message: errorMessage?.customMessage || "Server error, try again later",
     });
@@ -45,7 +46,7 @@ const getUser = async (req, res) => {
     const user = await pool.query(query, [uid]);
     return res.status(202).json(user.rows[0] || []);
   } catch (err) {
-    console.log(err);
+    logger.error("getUser error", err);
     return res.status(404).json({ message: "User not found" });
   }
 };
@@ -64,7 +65,7 @@ const updateUser = async (req, res) => {
     return res.status(200).json(updatedUser.rows[0] || {});
   } catch (err) {
     const errorMessage = findError(err.code);
-    console.log(errorMessage);
+    logger.log("updateUser errorMessage", errorMessage);
     return res.status(errorMessage?.statusCode || 500).json({
       message: errorMessage?.customMessage || "Server error, try again later",
     });
@@ -80,7 +81,7 @@ const verifyUserCookie = async (req, res) => {
     const user = await pool.query(query, [uid]);
     return res.status(200).json({ ...req.auth, ...(user.rows[0] || {}) });
   } catch (err) {
-    console.log(err);
+    logger.error("verifyUserCookie error", err);
     return res.status(500).json({ message: "Server error" });
   }
 };
@@ -88,7 +89,7 @@ const verifyUserCookie = async (req, res) => {
 const setLoggedInUserCookie = async (req, res) => {
   const isDevelopment = process.env.NODE_ENV === "development";
   try {
-    console.log(req.body);
+    logger.log("setLoggedInUserCookie body", req.body);
     res.cookie("userSessionToken", req.body.idToken, {
       maxAge: 1000 * 60 * 60,
       path: "/",
@@ -98,7 +99,7 @@ const setLoggedInUserCookie = async (req, res) => {
     });
     return res.status(200).json({ message: "Cookie set successfully" });
   } catch (err) {
-    console.log(err);
+    logger.error("setLoggedInUserCookie error", err);
     return res.status(500).json({ message: "Server error" });
   }
 };
@@ -106,7 +107,7 @@ const setLoggedInUserCookie = async (req, res) => {
 const deleteUserCookie = async (req, res) => {
   const isDevelopment = process.env.NODE_ENV === "development";
   try {
-    console.log(req.body);
+    logger.log("deleteUserCookie body", req.body);
     res.clearCookie("userSessionToken", {
       maxAge: 0,
       path: "/",
@@ -116,7 +117,7 @@ const deleteUserCookie = async (req, res) => {
     });
     return res.status(200).json({ message: "Cookie deleted successfully" });
   } catch (err) {
-    console.log(err);
+    logger.error("deleteUserCookie error", err);
     return res.status(500).json({ message: "Server error" });
   }
 };
@@ -129,7 +130,7 @@ const sendOtp = async (req, res) => {
       "INSERT INTO authOtps (reciever, otpType, value) VALUES ($1, $2, $3) RETURNING *",
       [reciever, type, value]
     );
-    console.log(data);
+    logger.log("sendOtp result", data);
     if (req.body.type === "email" && process.env.NODE_ENV !== "development") {
       await emailjs.send(
         process.env.EMAILJS_SERVICE_ID,
@@ -144,7 +145,7 @@ const sendOtp = async (req, res) => {
     }
     return res.status(201).json({ message: "Otp sent" });
   } catch (err) {
-    console.log(err);
+    logger.error("sendOtp error", err);
     return res.status(500).json(err);
   }
 };
@@ -179,18 +180,12 @@ const verifyOtp = async (req, res) => {
     ]);
     return res.status(200).json({ message: "Verification successful" });
   } catch (err) {
-    console.log(err);
+    logger.error("verifyOtp error", err);
     return res.status(500).json(err);
   }
 };
 
 export {
-  createUser,
-  updateUser,
-  getUser,
-  setLoggedInUserCookie,
-  deleteUserCookie,
-  verifyUserCookie,
-  sendOtp,
-  verifyOtp,
+  createUser, deleteUserCookie, getUser, sendOtp, setLoggedInUserCookie, updateUser, verifyOtp, verifyUserCookie
 };
+

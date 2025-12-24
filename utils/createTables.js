@@ -25,7 +25,8 @@ const createCartsTable = async () => {
   await importUuidDExtensionQuery();
   await pool.query(`
         CREATE TABLE IF NOT EXISTS carts (
-            productId UUID PRIMARY KEY REFERENCES products(productId),
+            cartId UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+            productId UUID NOT NULL REFERENCES products(productId),
             userId UUID NOT NULL REFERENCES users(userId) ON DELETE CASCADE,
             variant TEXT,
             quantity INTEGER NOT NULL DEFAULT 1,
@@ -68,9 +69,8 @@ const createOrdersTable = async () => {
         CREATE TABLE IF NOT EXISTS orders (
             orderId UUID PRIMARY KEY DEFAULT gen_random_uuid(),
             productId UUID NOT NULL REFERENCES products(productId),
-            vendorId UUID NOT NULL REFERENCES users(userId),
             quantityOrdered INTEGER NOT NULL DEFAULT 1,
-            deliveryStatus TEXT NOT NULL CHECK(deliveryStatus IN ('pending', 'delivered', 'delivering', 'cancelled')),
+            deliveryStatus TEXT NOT NULL DEFAULT 'pending' CHECK(deliveryStatus IN ('pending', 'delivered', 'delivering', 'cancelled')),
             userId  UUID NOT NULL REFERENCES users(userId),
             address TEXT NOT NULL,
             dateAdded TIMESTAMPZ NOT NULL DEFAULT NOW()

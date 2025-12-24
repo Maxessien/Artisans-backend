@@ -1,6 +1,7 @@
 import { uploader } from "../configs/cloudinaryConfigs.js";
 import pool from "../configs/sqlConnection.js";
 import { findError } from "../fbAuthErrors.js";
+import logger from "../utils/logger.js";
 
 const addToCart = async (req, res) => {
   try {
@@ -17,7 +18,7 @@ const addToCart = async (req, res) => {
     await pool.query(query, [productId, quantity, id]);
     return res.status(200).json({ message: "Added Successfully" });
   } catch (err) {
-    console.log(err);
+    logger.error("addToCart error", err);
     return res.status(500).json({ message: "Server error" });
   }
 };
@@ -30,7 +31,7 @@ const deleteFromCart = async (req, res) => {
     ]);
     return res.status(200).json({ message: "Deleted Successfully" });
   } catch (err) {
-    console.log(err);
+    logger.error("deleteFromCart error", err);
     return res.status(500).json({ message: "Server error" });
   }
 };
@@ -56,9 +57,9 @@ const uploadUserProfilePhoto = async (req, res) => {
     // cleanUpStorage(req.file.path);
     return res.status(201).json({ message: "Update successfully" });
   } catch (err) {
-    console.log(err);
+    logger.error("uploadUserProfilePhoto error", err);
     const errorMessage = findError(err.code);
-    console.log(errorMessage);
+    logger.log("uploadUserProfilePhoto errorMessage", errorMessage);
     return res.status(errorMessage?.statusCode || 500).json({
       message: errorMessage?.customMessage || "Server error, try again later",
     });

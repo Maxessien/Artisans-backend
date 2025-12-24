@@ -1,7 +1,7 @@
 import fs from "fs";
 import multer from "multer";
 import { Product } from "../models/productsModel.js";
-import crypto from 'crypto';
+import crypto from "crypto";
 
 const upload = multer({ dest: "uploads" });
 
@@ -48,22 +48,34 @@ const populateUserCart = async (userCart) => {
   }
 };
 
+const userAllowedFields = (exclusions) => {
+  if (!Array.isArray(exclusions) && typeof exclusions !== "string")
+    throw new Error("exclusions must be a string or Array of strings");
+  const defaultFields = [
+    "displayName",
+    "userId",
+    "profilePicture",
+    "email",
+    "phoneNumber",
+    "cart",
+    "orderHistory",
+    "following",
+    "wishlist",
+    "reviewsMade",
+    "orderPoints",
+  ];
+  const filtered = defaultFields.filter((field) => {
+    if (Array.isArray(exclusions)) return !exclusions.includes(field);
+    if (typeof exclusions === "string") return field !== exclusions;
+  });
+  return filtered;
+};
 
-const userAllowedFields = (exclusions)=>{
-    if (!Array.isArray(exclusions) && typeof exclusions!=="string") throw new Error("exclusions must be a string or Array of strings")
-    const defaultFields = ["displayName", "userId", "profilePicture", "email", "phoneNumber", "cart", "orderHistory", "following", "wishlist", "reviewsMade", "orderPoints"]
-   const filtered = defaultFields.filter((field)=>{
-        if (Array.isArray(exclusions)) return !exclusions.includes(field)
-        if (typeof exclusions==="string") return field !== exclusions
-    })
-    return filtered
-}
+const generateUUID = () => {
+  return crypto.randomUUID();
+};
 
-const generateUUID = ()=>{
-  return crypto.randomUUID()
-}
-
-const addedProductEmail = async (name, category, price)=>{
+const addedProductEmail = async (name, category, price) => {
   try {
     await emailjs.send(process.env.EMAILJS_SERVICE_ID, "template_41f8lkx", {
       product_name: name,
@@ -72,9 +84,33 @@ const addedProductEmail = async (name, category, price)=>{
       review_link: "https://github.com/Maxessien",
     });
   } catch (err) {
-    console.log(err)
-    throw err
+    console.log(err);
+    throw err;
   }
-}
+};
 
-export { upload, cleanUpStorage, populateUserCart, userAllowedFields, generateUUID, addedProductEmail };
+/**
+ * @param {Number} start - Inclusive start param index 
+ * @param {Array} array - 1D Array to create SQL params from
+ *
+ * @returns {String} - String SQL param e.g ($1, $2, $3)
+ */
+const genParamsFromArray = (start=1, array) => {
+  let paramStr = "";
+  array.forEach((_, index) => {
+    paramStr += `$${
+      index + 1 === array.length ? start + index + 1 : `${start + index + 1},`
+    }`;
+  });
+  return `(${paramStr})`;
+};
+
+export {
+  upload,
+  cleanUpStorage,
+  populateUserCart,
+  userAllowedFields,
+  generateUUID,
+  addedProductEmail,
+  genParamsFromArray,
+};

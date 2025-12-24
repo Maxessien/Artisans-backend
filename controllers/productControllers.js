@@ -1,11 +1,12 @@
 import axios from "axios";
 import { uploader } from "../configs/cloudinaryConfigs.js";
 import pool from "../configs/sqlConnection.js";
-import { addedProductEmail } from "../utils/usersUtilFns.js";
+import { addedProductEmail, genParamsFromArray } from "../utils/usersUtilFns.js";
+import logger from "../utils/logger.js";
 
 const getProducts = async (req, res) => {
   try {
-    console.log({ ...req.query }, "fffff");
+    logger.log("getProducts query", { ...req.query });
     const {
       page = 1,
       limit = 20,
@@ -13,7 +14,7 @@ const getProducts = async (req, res) => {
       order = "desc",
       minPrice = 0,
       maxPrice = 5000000,
-      category = "",
+      category = [],
     } = req.query;
     const selectedCategories =
       category?.length > 0
@@ -23,29 +24,30 @@ const getProducts = async (req, res) => {
               "SELECT COALESCE(json_agg(title), '[]') AS title FROM categories"
             )
           ).rows[0].title;
+    const formattedParams = genParamsFromArray(5, selectedCategories)
     const fetchQuery = `SELECT productId, productName, price, category, vendorId, description, COUNT(*) AS totalProducts
                         FROM products 
-                        WHERE (price BETWEEN $1 AND $2) AND category IN $3
+                        WHERE (price BETWEEN $1 AND $2) AND category IN ${formattedParams}
                         ORDER BY ${
                           ["dateAdded", "price"].includes(sortBy)
                             ? sortBy
                             : "dateAdded"
                         } ${order === "desc" ? "DESC" : "ASC"}
-                        LIMIT $4 OFFSET $5`;
+                        LIMIT $3 OFFSET $4`;
     const products = await pool.query(fetchQuery, [
       minPrice,
       maxPrice,
-      `(${selectedCategories.join(",")})`,
       limit,
       limit * (page - 1),
+      ...selectedCategories
     ]);
-    console.log(products, "prodsss");
-    return res.status(202).json({
+    logger.log("getProducts result", products);
+    return res.status(200).json({
       data: products.rows || [],
       totalPages: Math.floor(products.rows[0]?.totalProducts / limit) || 0,
     });
   } catch (err) {
-    console.log(err);
+    logger.error("getProducts error", err);
     return res.status(500).json(err);
   }
 };
@@ -57,8 +59,8 @@ const getSingleProduct = async (req, res) => {
     const product = await pool.query(query, [req.query.id]);
     res.status(200).json(product.rows[0]);
   } catch (err) {
-    console.log(err);
-    res.status(500).json(err);
+    logger.error("getSingleProduct error", err);
+    return res.status(500).json(err);
   }
 };
 
@@ -69,7 +71,7 @@ const getVendorProduct = async (req, res) => {
     const vendorProducts = await pool.query(query, [req.auth.uid]);
     return res.status(200).json(vendorProducts.rows);
   } catch (err) {
-    console.log(err);
+    logger.error("getVendorProduct error", err);
     return res.status(500).json(err);
   }
 };
@@ -96,7 +98,7 @@ const addProduct = async (req, res) => {
     await addedProductEmail(productName, category, price);
     return res.status(201).json({ message: "Product added successfully" });
   } catch (err) {
-    console.log(err);
+    logger.error("addProduct error", err);
     return res.status(500).json(err);
   }
 };
@@ -121,13 +123,13 @@ const updateProduct = async (req, res) => {
     // update product fields
     const { productName, price, category, description } = req.body;
     await pool.query(
-      "UPDATE products SET productname = $1, price = $2, category = $3, description = $4 WHERE productid = $5",
+      "UPDATE products SET productName = $1, price = $2, category = $3, description = $4 WHERE productId = $5",
       [productName, price, category, description, productId]
     );
 
     return res.status(200).json({ message: "Updated successfully" });
   } catch (err) {
-    console.log(err);
+    logger.error("updateProduct error", err);
     return res.status(500).json(err);
   }
 };
@@ -153,7 +155,7 @@ const deleteProduct = async (req, res) => {
     await pool.query("DELETE FROM products WHERE productid = $1", [productId]);
     return res.status(200).json({ message: "Deleted Successfully" });
   } catch (err) {
-    console.log(err);
+    logger.error("deleteProduct error", err);
     return res.status(500).json(err);
   }
 };
@@ -170,7 +172,7 @@ const deleteUploadedProductImage = async (req, res) => {
     await uploader.destroy(publicId);
     return res.status(200).json({ message: "Updated successfully" });
   } catch (err) {
-    console.log(err);
+    logger.error("deleteUploadedProductImage error", err);
     return res.status(500).json(err);
   }
 };
@@ -186,7 +188,7 @@ const searchProducts = async (req, res) => {
       minPrice = 10,
       maxPrice = 5000000,
     } = req.query;
-    console.log({ ...req.query });
+    logger.log("searchProducts query", { ...req.query });
     if (!searchTerm || typeof searchTerm !== "string")
       throw new Error("Invalid search term");
     const { data } = await axios.post(
@@ -209,10 +211,10 @@ const searchProducts = async (req, res) => {
       limit,
       limit * (page - 1),
     ]);
-    console.log(searchResult, "results");
+    logger.log("searchProducts result", searchResult);
     return res.status(200).json({ data: searchResult.rows, totalPages: 1 });
   } catch (err) {
-    console.log(err);
+    logger.error("searchProducts error", err);
     return res.status(500).json(err);
   }
 };

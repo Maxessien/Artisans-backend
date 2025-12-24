@@ -1,76 +1,89 @@
-import { Order } from "../models/ordersModel.js";
-import { User } from "../models/usersModel.js";
-import { populateUserCart } from "./../utils/usersUtilFns.js";
+import pool from "../configs/sqlConnection.js";
+import { genParamsFromArray } from "../utils/usersUtilFns.js";
+import logger from "../utils/logger.js";
 
 const placeOrders = async (req, res) => {
+  const client = pool.connect();
   try {
-    const user = await User.findOne({ userId: req.auth.uid })
-      .lean();
-    console.log(user, "user");
-    const populatedCart = await populateUserCart(user.cart);
-    console.log(populatedCart, "cart");
-    const ordersArray = populatedCart.map((product) => {
-      return {
-        productId: product.productId,
-        name: product.name,
-        price: product.price,
-        ...(req.body.variant ? { variant: req.body.variant } : {}),
-        vendorId: product.vendorId,
-        quantityOrdered: product.quantity,
-        userId: user.userId,
-        address: req.body.address,
-        customerContactInfo: {
-          email: user.email,
-          phone: user.phoneNumber,
-        },
-      };
+    const bodyFlattened = req.body.map((obj = {}) => {
+      const tempArr = [];
+      for (const value in obj) tempArr.push(obj[value]);
+      return tempArr;
     });
-    await Order.insertMany(ordersArray);
-    await User.updateOne({userId: req.auth.uid}, {cart: []})
-    const orders = await Order.find().lean();
-    console.log(orders);
+    let paramStr = "";
+    bodyFlattened.forEach(
+      (obj, index) =>
+        (paramStr +=
+          index + 1 === bodyFlattened.length
+            ? genParamsFromArray(index * obj.length + 1, obj)
+            : `${genParamsFromArray(index * obj.length + 1, obj)},`)
+    );
+    const productIdParam = genParamsFromArray(
+      2,
+      req.body.map((obj) => obj.productId)
+    );
+    const addOrderQuery = `INSERT INTO orders (productId, userId, quantityOrdered, address) 
+                            VALUES ${paramStr}`;
+    const deleteFromCartQuery = `DELETE FROM carts WHERE userId = $1 AND productId IN ${productIdParam}`;
+    await client.query(addOrderQuery, bodyFlattened.flat());
+    await client.query(deleteFromCartQuery, [
+      req.body[0].userId,
+      ...req.body.map((obj) => obj.productId),
+    ]);
+    await client.query("COMMIT");
     return res.status(201).json({ message: "Order Created" });
   } catch (err) {
-    console.log(err);
+    logger.error("placeOrders error", err);
+    await client.query("ROLLBACK");
     return res.status(500).json({ message: "Server error" });
+  } finally {
+    client.release();
   }
 };
 
 const getOrderHistory = async (req, res) => {
   try {
     const {
-      orderBy = "createdAt",
+      orderBy = "dateAdded",
       direction = "desc",
-      status = ["pending", "completed", "cancelled"],
-      limit=20
+      status = ["pending", "delivered", "cancelled", "delivering"],
+      limit = 20,
     } = req.query;
-    const orders = await Order.find({
-      userId: { $in: req.auth.uid },
-      deliveryStatus: { $in: status },
-    })
-      .sort({[orderBy]: direction}).limit(limit)
-      .lean();
-    console.log(orders);
-    return res.status(200).json(orders);
+    const orderQuery = `SELECT * FROM orders WHERE userId = $1 AND deliveryStatus IN ${
+      status?.length > 0 && Array.isArray(status)
+        ? genParamsFromArray(4, status)
+        : genParamsFromArray(4, [
+            "pending",
+            "delivered",
+            "cancelled",
+            "delivering",
+          ])
+    }
+          ORDER BY $2 ${direction === "desc" ? "DESC" : "ASC"}
+          LIMIT $3`;
+    const orders = await pool.query(orderQuery, [
+      req.auth.uid,
+      orderBy,
+      limit,
+      ...(status?.length > 0 && Array.isArray(status)
+        ? status
+        : ["pending", "delivered", "cancelled", "delivering"]),
+    ]);
+    logger.log("getOrderHistory result", orders);
+    return res.status(200).json(orders.rows);
   } catch (err) {
-    console.log(err);
+    logger.error("getOrderHistory error", err);
     return res.status(500).json({ message: "Server error" });
   }
 };
 
 const cancelOrder = async (req, res) => {
   try {
-    const getOrder = await Order.findOne({ orderId: req.params.orderId })
-      .select("userId")
-      .lean();
-    if (req.auth.uid !== getOrder.userId) throw new Error("Unauthorised user");
-    await Order.updateOne(
-      { orderId: req.params.orderId },
-      { deliveryStatus: "cancelled" }
-    );
+    const query = `UPDATE orders SET deliveryStatus = $1 WHERE orderId = $2`
+    await pool.query(query, ["cancelled", req.params.orderId])
     return res.status(200).json({ message: "Order cancelled successfully" });
   } catch (err) {
-    console.log(err);
+    logger.error("cancelOrder error", err);
     return res.status(500).json({ message: "Server error" });
   }
 };
@@ -78,39 +91,47 @@ const cancelOrder = async (req, res) => {
 const getVendorOrders = async (req, res) => {
   try {
     const {
-      orderBy = "createdAt",
+      orderBy = "dateAdded",
       direction = "desc",
-      status = ["pending", "completed", "cancelled"],
-      limit=0,
-      page=1
+      status = ["pending", "delivered", "cancelled", "delivering"],
+      limit = 20,
     } = req.query;
-    const orders = await Order.find({
-      vendorId: req.auth.uid,
-      deliveryStatus: { $in: status },
-    })
-      .sort({[orderBy]: direction}).limit(limit).skip((page-1)*limit)
-      .lean();
-    return res.status(200).json(orders);
+    const orderQuery = `SELECT * FROM orders WHERE productId IN (SELECT productId FROM products WHERE vendorId = $1)
+                          AND deliveryStatus IN ${
+                            status?.length > 0 && Array.isArray(status)
+                              ? genParamsFromArray(4, status)
+                              : genParamsFromArray(4, [
+                                  "pending",
+                                  "delivered",
+                                  "cancelled",
+                                  "delivering",
+                                ])
+                          }
+                          ORDER BY $2 ${direction === "desc" ? "DESC" : "ASC"}
+                          LIMIT $3`;
+    const orders = await pool.query(orderQuery, [
+      req.auth.uid,
+      orderBy,
+      limit,
+      ...(status?.length > 0 && Array.isArray(status)
+        ? status
+        : ["pending", "delivered", "cancelled", "delivering"]),
+    ]);
+    return res.status(200).json(orders.rows);
   } catch (err) {
-    console.log(err);
+    logger.error("getVendorOrders error", err);
     return res.status(500).json({ message: "Server error" });
   }
 };
 
 const updateOrderStatus = async (req, res) => {
   try {
-    const getOrder = await Order.findOne({ orderId: req.body.orderId })
-      .select("vendorId")
-      .lean();
-    if (req.auth.uid !== getOrder.vendorId)
-      throw new Error("Unauthorised user");
-    const updatedOrder = await Order.findOneAndUpdate(
-      { orderId: req.body.orderId },
-      { deliveryStatus: req.body.deliveryStatus }
-    );
-    return res.status(200).status(updatedOrder);
+    const query = `UPDATE orders SET deliveryStatus = $1 WHERE orderId = $2
+                    AND (userId = $3 OR productId IN (SELECT productId FROM products WHERE vendorId = $3))`
+    await pool.query(query, [req.body.status, req.body.orderId, req.auth.uid])
+    return res.status(200).json({message: "Order updated successfully"});
   } catch (err) {
-    console.log(err);
+    logger.error("updateOrderStatus error", err);
     return res.status(500).json(err);
   }
 };
