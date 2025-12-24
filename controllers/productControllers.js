@@ -1,8 +1,8 @@
 import axios from "axios";
 import { uploader } from "../configs/cloudinaryConfigs.js";
 import pool from "../configs/sqlConnection.js";
-import { addedProductEmail, genParamsFromArray } from "../utils/usersUtilFns.js";
 import logger from "../utils/logger.js";
+import { addedProductEmail, genParamsFromArray } from "../utils/usersUtilFns.js";
 
 const getProducts = async (req, res) => {
   try {
@@ -10,7 +10,7 @@ const getProducts = async (req, res) => {
     const {
       page = 1,
       limit = 20,
-      sortBy = "dateAdded",
+      sortBy = "date_added",
       order = "desc",
       minPrice = 0,
       maxPrice = 5000000,
@@ -25,13 +25,13 @@ const getProducts = async (req, res) => {
             )
           ).rows[0].title;
     const formattedParams = genParamsFromArray(5, selectedCategories)
-    const fetchQuery = `SELECT productId, productName, price, category, vendorId, description, COUNT(*) AS totalProducts
+    const fetchQuery = `SELECT product_id, product_name, price, category, vendor_id, description, COUNT(*) AS total_products
                         FROM products 
                         WHERE (price BETWEEN $1 AND $2) AND category IN ${formattedParams}
                         ORDER BY ${
-                          ["dateAdded", "price"].includes(sortBy)
+                          ["date_added", "price"].includes(sortBy)
                             ? sortBy
-                            : "dateAdded"
+                            : "date_added"
                         } ${order === "desc" ? "DESC" : "ASC"}
                         LIMIT $3 OFFSET $4`;
     const products = await pool.query(fetchQuery, [
@@ -44,7 +44,7 @@ const getProducts = async (req, res) => {
     logger.log("getProducts result", products);
     return res.status(200).json({
       data: products.rows || [],
-      totalPages: Math.floor(products.rows[0]?.totalProducts / limit) || 0,
+      totalPages: Math.floor(products.rows[0]?.total_products / limit) || 0,
     });
   } catch (err) {
     logger.error("getProducts error", err);
@@ -55,7 +55,7 @@ const getProducts = async (req, res) => {
 const getSingleProduct = async (req, res) => {
   try {
     const query =
-      "SELECT productId, productName, price, category, vendorId, description FROM products WHERE productId = $1";
+      "SELECT product_id, product_name, price, category, vendor_id, description FROM products WHERE product_id = $1";
     const product = await pool.query(query, [req.query.id]);
     res.status(200).json(product.rows[0]);
   } catch (err) {
@@ -67,7 +67,7 @@ const getSingleProduct = async (req, res) => {
 const getVendorProduct = async (req, res) => {
   try {
     const query =
-      "SELECT productId, productName, price, category, vendorId, description FROM products WHERE vendorId = $1";
+      "SELECT product_id, product_name, price, category, vendor_id, description FROM products WHERE vendor_id = $1";
     const vendorProducts = await pool.query(query, [req.auth.uid]);
     return res.status(200).json(vendorProducts.rows);
   } catch (err) {
@@ -86,7 +86,7 @@ const addProduct = async (req, res) => {
       { text: `${productName} ${description} ${category}` }
     );
     const query =
-      "INSERT INTO products (productName, price, category, description, vendorId, vectorRep) VALUES ($1, $2, $3, $4, $5, $6)";
+      "INSERT INTO products (product_name, price, category, description, vendor_id, vector_rep) VALUES ($1, $2, $3, $4, $5, $6)";
     await pool.query(query, [
       productName,
       price,
@@ -113,7 +113,7 @@ const updateProduct = async (req, res) => {
         const publicId = img.publicId || img.publicid || img.public_id;
         const url = img.url || img.imageUrl || img.imageURL;
         return pool.query(
-          "INSERT INTO productimages (imagePublicId, productid, imageurl) VALUES ($1, $2, $3) ON CONFLICT (imagePublicId) DO NOTHING",
+          "INSERT INTO product_images (image_public_id, product_id, image_url) VALUES ($1, $2, $3) ON CONFLICT (image_public_id) DO NOTHING",
           [publicId, productId, url]
         );
       });
@@ -123,7 +123,7 @@ const updateProduct = async (req, res) => {
     // update product fields
     const { productName, price, category, description } = req.body;
     await pool.query(
-      "UPDATE products SET productName = $1, price = $2, category = $3, description = $4 WHERE productId = $5",
+      "UPDATE products SET product_name = $1, price = $2, category = $3, description = $4 WHERE product_id = $5",
       [productName, price, category, description, productId]
     );
 
@@ -139,7 +139,7 @@ const deleteProduct = async (req, res) => {
     const productId = req.query.productId;
     // fetch image public ids
     const imagesRes = await pool.query(
-      "SELECT imagePublicId FROM productimages WHERE productid = $1",
+      "SELECT image_public_id FROM product_images WHERE product_id = $1",
       [productId]
     );
     const images = imagesRes.rows || [];
@@ -147,12 +147,12 @@ const deleteProduct = async (req, res) => {
     // destroy cloudinary images
     await Promise.all(
       images.map((r) =>
-        uploader.destroy(r.imagePublicId || r.imagepublicid || r.publicid)
+        uploader.destroy(r.image_public_id || r.imagepublicid || r.publicid)
       )
     );
 
-    // delete product (productimages rows cascade)
-    await pool.query("DELETE FROM products WHERE productid = $1", [productId]);
+    // delete product (product_images rows cascade)
+    await pool.query("DELETE FROM products WHERE product_id = $1", [productId]);
     return res.status(200).json({ message: "Deleted Successfully" });
   } catch (err) {
     logger.error("deleteProduct error", err);
@@ -163,9 +163,9 @@ const deleteProduct = async (req, res) => {
 const deleteUploadedProductImage = async (req, res) => {
   try {
     const { productId, publicId } = req.query;
-    // delete image row from productImages
+    // delete image row from product_images
     await pool.query(
-      "DELETE FROM productimages WHERE imagePublicId = $1 AND productid = $2",
+      "DELETE FROM product_images WHERE image_public_id = $1 AND product_id = $2",
       [publicId, productId]
     );
     // destroy cloudinary image
@@ -183,7 +183,7 @@ const searchProducts = async (req, res) => {
       searchTerm,
       page = 1,
       limit = 20,
-      sortBy = "dateAdded",
+      sortBy = "date_added",
       order = "desc",
       minPrice = 10,
       maxPrice = 5000000,
@@ -195,12 +195,12 @@ const searchProducts = async (req, res) => {
       `${process.env.PYTHON_BACKEND_URL}/api/embeddings`,
       { text: searchTerm }
     );
-    const query = `SELECT productId, productName, price, category, vendorId, description, embedding <#> $1 AS score
+    const query = `SELECT product_id, product_name, price, category, vendor_id, description, embedding <#> $1 AS score
                     FROM products WHERE price BETWEEN $2 AND $3
                     ORDER BY embedding <#> $1, ${
-                      ["dateAdded", "price"].includes(sortBy)
+                      ["date_added", "price"].includes(sortBy)
                         ? sortBy
-                        : "dateAdded"
+                        : "date_added"
                     } ${order === "desc" ? "DESC" : "ASC"}
                     LIMIT $4
                     OFFSET $5`;
@@ -227,5 +227,6 @@ export {
   getSingleProduct,
   getVendorProduct,
   searchProducts,
-  updateProduct,
+  updateProduct
 };
+

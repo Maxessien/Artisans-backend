@@ -8,13 +8,13 @@ const addToCart = async (req, res) => {
     const { productId, quantity } = req.body;
     const { id } = req.params;
     const existsInCart = await pool.query(
-      "SELECT userId FROM carts WHERE productId = $1 AND userId = $2",
+      "SELECT user_id FROM carts WHERE product_id = $1 AND user_id = $2",
       [productId, id]
     );
     const query =
       existsInCart?.rows?.length > 0
-        ? `UPDATE carts SET quantity = quantity + $2 WHERE productId = $1 AND userId = $3`
-        : `INSERT INTO carts (productId, quantity, userId) VALUES ($1, $2, $3)`;
+        ? `UPDATE carts SET quantity = quantity + $2 WHERE product_id = $1 AND user_id = $3`
+        : `INSERT INTO carts (product_id, quantity, user_id) VALUES ($1, $2, $3)`;
     await pool.query(query, [productId, quantity, id]);
     return res.status(200).json({ message: "Added Successfully" });
   } catch (err) {
@@ -25,7 +25,7 @@ const addToCart = async (req, res) => {
 
 const deleteFromCart = async (req, res) => {
   try {
-    await pool.query("DELETE FROM carts WHERE productId = $1 AND userId = $2", [
+    await pool.query("DELETE FROM carts WHERE product_id = $1 AND user_id = $2", [
       req.params.productId,
       req.params.id,
     ]);
@@ -38,17 +38,17 @@ const deleteFromCart = async (req, res) => {
 
 const uploadUserProfilePhoto = async (req, res) => {
   try {
-    const query = "SELECT picturePublicId FROM users WHERE userId = $1";
+    const query = "SELECT picture_public_id FROM users WHERE user_id = $1";
     const profilePhotoDb = await pool.query(query, [req.auth.uid]);
     const isUpdate =
-      profilePhotoDb?.rows[0].picturePublicId !== "default_public_id";
+      profilePhotoDb?.rows[0].picture_public_id !== "default_public_id";
     const { secure_url, public_id } = await uploader.upload(req.file.path, {
       folder: isUpdate
-        ? profilePhotoDb?.rows[0].picturePublicId
+        ? profilePhotoDb?.rows[0].picture_public_id
         : "lasu_mart/user_profile_photos",
     });
     const updateQuery =
-      "UPDATE users SET pictureUrl = $1, picturePublicId = $2 WHERE userId = $3";
+      "UPDATE users SET picture_url = $1, picture_public_id = $2 WHERE user_id = $3";
     await pool.query(updateQuery, [
       secure_url,
       public_id,
@@ -67,3 +67,4 @@ const uploadUserProfilePhoto = async (req, res) => {
 };
 
 export { addToCart, deleteFromCart, uploadUserProfilePhoto };
+

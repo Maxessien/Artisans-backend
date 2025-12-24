@@ -17,7 +17,7 @@ const createUser = async (req, res) => {
       isVerified: { email: false, phone: false },
     });
     const query =
-      "INSERT INTO users (userId, email, displayName, phoneNumber, role) VALUES ($1, $2, $3, $4, $5) RETURNING *";
+      "INSERT INTO users (user_id, email, display_name, phone_number, role) VALUES ($1, $2, $3, $4, $5) RETURNING *";
     const dbStore = await pool.query(query, [
       user.uid,
       user.email,
@@ -40,9 +40,9 @@ const createUser = async (req, res) => {
 const getUser = async (req, res) => {
   try {
     const uid = req.auth.uid;
-    const query = `SELECT users.userId, email, displayName, phoneNumber, pictureUrl, preferredPaymentMethod,
-                    (SELECT COUNT(*) FROM carts WHERE carts.userId = $1) AS totalCartItems
-                    FROM users WHERE users.userId = $1`;
+    const query = `SELECT users.user_id, email, display_name, phone_number, picture_url, preferred_payment_method,
+                    (SELECT COUNT(*) FROM carts WHERE carts.user_id = $1) AS total_cart_items
+                    FROM users WHERE users.user_id = $1`;
     const user = await pool.query(query, [uid]);
     return res.status(202).json(user.rows[0] || []);
   } catch (err) {
@@ -55,7 +55,7 @@ const updateUser = async (req, res) => {
   try {
     const { displayName, address, preferredPaymentMethod } = req.body;
     const query =
-      "UPDATE users SET displayName = $1, address = $2, preferredPaymentMethod = $3 WHERE userId = $4 RETURNING *";
+      "UPDATE users SET display_name = $1, address = $2, preferred_payment_method = $3 WHERE user_id = $4 RETURNING *";
     const updatedUser = await pool.query(query, [
       displayName,
       address,
@@ -75,9 +75,9 @@ const updateUser = async (req, res) => {
 const verifyUserCookie = async (req, res) => {
   try {
     const uid = req.auth.uid;
-    const query = `SELECT users.userId, email, displayName, phoneNumber, pictureUrl, preferredPaymentMethod,
-                    (SELECT COUNT(*) FROM carts WHERE carts.userId = $1) AS totalCartItems
-                    FROM users WHERE users.userId = $1`;
+    const query = `SELECT users.user_id, email, display_name, phone_number, picture_url, preferred_payment_method,
+                    (SELECT COUNT(*) FROM carts WHERE carts.user_id = $1) AS total_cart_items
+                    FROM users WHERE users.user_id = $1`;
     const user = await pool.query(query, [uid]);
     return res.status(200).json({ ...req.auth, ...(user.rows[0] || {}) });
   } catch (err) {
@@ -127,7 +127,7 @@ const sendOtp = async (req, res) => {
     const { type, reciever } = req.body;
     const value = crypto.randomInt(100000, 1000000).toString();
     const data = await pool.query(
-      "INSERT INTO authOtps (reciever, otpType, value) VALUES ($1, $2, $3) RETURNING *",
+      "INSERT INTO auth_otps (receiver, otp_type, value) VALUES ($1, $2, $3) RETURNING *",
       [reciever, type, value]
     );
     logger.log("sendOtp result", data);
@@ -152,30 +152,30 @@ const sendOtp = async (req, res) => {
 
 const verifyOtp = async (req, res) => {
   try {
-    const query = `SELECT value, otpType, reciever FROM authOtps WHERE value = $1 AND expiryTime > NOW()`;
+    const query = `SELECT value, otp_type, receiver FROM auth_otps WHERE value = $1 AND expiry_time > NOW()`;
     const otp = await pool.query(query, [req.body.otpValue]);
     const isValid = otp?.rows?.length > 0;
     if (!isValid) throw new Error("Invalid OTP");
     const user = await pool.query(
-      `SELECT userId FROM users WHERE ${
-        otp.rows[0].otpType === "email" ? "email = $1" : "phoneNumber = $1"
+      `SELECT user_id FROM users WHERE ${
+        otp.rows[0].otp_type === "email" ? "email = $1" : "phone_number = $1"
       }`,
-      [otp.rows[0].reciever]
+      [otp.rows[0].receiver]
     );
     // Fetch existing custom claims using Admin SDK
-    const userRecord = await auth.getUser(user.rows[0].userId);
+    const userRecord = await auth.getUser(user.rows[0].user_id);
     const existingClaims = userRecord.customClaims || {};
     const existingVerified = existingClaims.isVerified || { email: false, phone: false };
     
     // Merge with new verification
-    await auth.setCustomUserClaims(user.rows[0].userId, {
+    await auth.setCustomUserClaims(user.rows[0].user_id, {
       role: "user",
       isVerified: {
         ...existingVerified,
-        ...(otp.rows[0].otpType === "email" ? { email: true } : { phone: true }),
+        ...(otp.rows[0].otp_type === "email" ? { email: true } : { phone: true }),
       },
     });
-    await pool.query("DELETE FROM authOtps WHERE value = $1", [
+    await pool.query("DELETE FROM auth_otps WHERE value = $1", [
       req.body.otpValue,
     ]);
     return res.status(200).json({ message: "Verification successful" });

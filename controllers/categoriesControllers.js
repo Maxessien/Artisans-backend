@@ -1,4 +1,5 @@
-import logger from "../utils/logger.js"
+import pool from "../configs/sqlConnection.js";
+import logger from "../utils/logger.js";
 
 const getCategories = async(req, res)=>{
     try {
@@ -33,4 +34,5 @@ const deleteCategory = async(req, res)=>{
     }
 }
 
-export { addCategory, deleteCategory, getCategories }
+export { addCategory, deleteCategory, getCategories };
+

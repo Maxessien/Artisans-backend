@@ -1,6 +1,6 @@
 import pool from "../configs/sqlConnection.js";
-import { genParamsFromArray } from "../utils/usersUtilFns.js";
 import logger from "../utils/logger.js";
+import { genParamsFromArray } from "../utils/usersUtilFns.js";
 
 const placeOrders = async (req, res) => {
   const client = pool.connect();
@@ -22,9 +22,9 @@ const placeOrders = async (req, res) => {
       2,
       req.body.map((obj) => obj.productId)
     );
-    const addOrderQuery = `INSERT INTO orders (productId, userId, quantityOrdered, address) 
+    const addOrderQuery = `INSERT INTO orders (product_id, user_id, quantity_ordered, address) 
                             VALUES ${paramStr}`;
-    const deleteFromCartQuery = `DELETE FROM carts WHERE userId = $1 AND productId IN ${productIdParam}`;
+    const deleteFromCartQuery = `DELETE FROM carts WHERE user_id = $1 AND product_id IN ${productIdParam}`;
     await client.query(addOrderQuery, bodyFlattened.flat());
     await client.query(deleteFromCartQuery, [
       req.body[0].userId,
@@ -44,12 +44,12 @@ const placeOrders = async (req, res) => {
 const getOrderHistory = async (req, res) => {
   try {
     const {
-      orderBy = "dateAdded",
+      orderBy = "date_added",
       direction = "desc",
       status = ["pending", "delivered", "cancelled", "delivering"],
       limit = 20,
     } = req.query;
-    const orderQuery = `SELECT * FROM orders WHERE userId = $1 AND deliveryStatus IN ${
+    const orderQuery = `SELECT * FROM orders WHERE user_id = $1 AND delivery_status IN ${
       status?.length > 0 && Array.isArray(status)
         ? genParamsFromArray(4, status)
         : genParamsFromArray(4, [
@@ -79,7 +79,7 @@ const getOrderHistory = async (req, res) => {
 
 const cancelOrder = async (req, res) => {
   try {
-    const query = `UPDATE orders SET deliveryStatus = $1 WHERE orderId = $2`
+    const query = `UPDATE orders SET delivery_status = $1 WHERE order_id = $2`
     await pool.query(query, ["cancelled", req.params.orderId])
     return res.status(200).json({ message: "Order cancelled successfully" });
   } catch (err) {
@@ -91,13 +91,13 @@ const cancelOrder = async (req, res) => {
 const getVendorOrders = async (req, res) => {
   try {
     const {
-      orderBy = "dateAdded",
+      orderBy = "date_added",
       direction = "desc",
       status = ["pending", "delivered", "cancelled", "delivering"],
       limit = 20,
     } = req.query;
-    const orderQuery = `SELECT * FROM orders WHERE productId IN (SELECT productId FROM products WHERE vendorId = $1)
-                          AND deliveryStatus IN ${
+    const orderQuery = `SELECT * FROM orders WHERE product_id IN (SELECT product_id FROM products WHERE vendor_id = $1)
+                          AND delivery_status IN ${
                             status?.length > 0 && Array.isArray(status)
                               ? genParamsFromArray(4, status)
                               : genParamsFromArray(4, [
@@ -126,8 +126,8 @@ const getVendorOrders = async (req, res) => {
 
 const updateOrderStatus = async (req, res) => {
   try {
-    const query = `UPDATE orders SET deliveryStatus = $1 WHERE orderId = $2
-                    AND (userId = $3 OR productId IN (SELECT productId FROM products WHERE vendorId = $3))`
+    const query = `UPDATE orders SET delivery_status = $1 WHERE order_id = $2
+                    AND (user_id = $3 OR product_id IN (SELECT product_id FROM products WHERE vendor_id = $3))`
     await pool.query(query, [req.body.status, req.body.orderId, req.auth.uid])
     return res.status(200).json({message: "Order updated successfully"});
   } catch (err) {
@@ -137,9 +137,8 @@ const updateOrderStatus = async (req, res) => {
 };
 
 export {
-  placeOrders,
   cancelOrder,
   getOrderHistory,
-  getVendorOrders,
-  updateOrderStatus,
+  getVendorOrders, placeOrders, updateOrderStatus
 };
+

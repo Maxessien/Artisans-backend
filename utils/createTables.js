@@ -7,16 +7,16 @@ const createUserTable = async () => {
   await importUuidDExtensionQuery();
   await pool.query(`
         CREATE TABLE IF NOT EXISTS users (
-            userId UUID PRIMARY KEY,
+            user_id UUID PRIMARY KEY,
             email TEXT NOT NULL UNIQUE,
-            displayName TEXT NOT NULL,
-            pictureUrl TEXT NOT NULL DEFAULT 'default_url',
-            picturePublicId TEXT,
-            phoneNumber TEXT NOT NULL,
+            display_name TEXT NOT NULL,
+            picture_url TEXT NOT NULL DEFAULT 'default_url',
+            picture_public_id TEXT,
+            phone_number TEXT NOT NULL,
             role TEXT NOT NULL DEFAULT 'user' CHECK(role IN ('user','admin')),
             address TEXT,
-            preferredPaymentMethod TEXT NOT NULL DEFAULT 'Not Set' CHECK(prefferedPaymentMethod IN ('Nort Set', 'Paystack', 'On Delivery'))
-            dateAdded TIMESTAMPZ NOT NULL DEFAULT NOW()
+            preferred_payment_method TEXT NOT NULL DEFAULT 'Not Set' CHECK(preferred_payment_method IN ('Nort Set', 'Paystack', 'On Delivery')),
+            date_added TIMESTAMPZ NOT NULL DEFAULT NOW()
         );
     `);
 };
@@ -25,12 +25,12 @@ const createCartsTable = async () => {
   await importUuidDExtensionQuery();
   await pool.query(`
         CREATE TABLE IF NOT EXISTS carts (
-            cartId UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-            productId UUID NOT NULL REFERENCES products(productId),
-            userId UUID NOT NULL REFERENCES users(userId) ON DELETE CASCADE,
+            cart_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+            product_id UUID NOT NULL REFERENCES products(product_id),
+            user_id UUID NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
             variant TEXT,
             quantity INTEGER NOT NULL DEFAULT 1,
-            dateAdded TIMESTAMPZ NOT NULL DEFAULT NOW()
+            date_added TIMESTAMPZ NOT NULL DEFAULT NOW()
         )
     `);
 };
@@ -40,25 +40,25 @@ const createProductsTable = async () => {
   await pool.query("CREATE EXTENSION IF NOT EXISTS vector")
   await pool.query(`
     CREATE TABLE IF NOT EXISTS products (
-        productId UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-        productName TEXT NOT NULL,
+        product_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        product_name TEXT NOT NULL,
         price INTEGER NOT NULL,
         category TEXT REFERENCES categories(title) ON DELETE SET NULL,
-        vendorId UUID NOT NULL REFERENCES users(userId),
+        vendor_id UUID NOT NULL REFERENCES users(user_id),
         description TEXT NOT NULL,
-        vectorRep VECTOR(10) DEFAULT '{}'::text[],
-        dateAdded TIMESTAMPZ NOT NULL DEFAULT NOW()
+        vector_rep VECTOR(10) DEFAULT '{}'::text[],
+        date_added TIMESTAMPZ NOT NULL DEFAULT NOW()
     )
 `);
 };
 
 const createProductImagesTable = async () => {
   await pool.query(`
-        CREATE TABLE IF NOT EXISTS productImages (
-            imagePublicId TEXT PRIMARY KEY,
-            productId UUID NOT NULL REFERENCES products(productId) ON DELETE CASCADE,
-            imageUrl TEXT NOT NULL,
-            dateAdded TIMESTAMPZ NOT NULL DEFAULT NOW()
+        CREATE TABLE IF NOT EXISTS product_images (
+            image_public_id TEXT PRIMARY KEY,
+            product_id UUID NOT NULL REFERENCES products(product_id) ON DELETE CASCADE,
+            image_url TEXT NOT NULL,
+            date_added TIMESTAMPZ NOT NULL DEFAULT NOW()
         )
     `);
 };
@@ -67,13 +67,13 @@ const createOrdersTable = async () => {
   await importUuidDExtensionQuery();
   await pool.query(`
         CREATE TABLE IF NOT EXISTS orders (
-            orderId UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-            productId UUID NOT NULL REFERENCES products(productId),
-            quantityOrdered INTEGER NOT NULL DEFAULT 1,
-            deliveryStatus TEXT NOT NULL DEFAULT 'pending' CHECK(deliveryStatus IN ('pending', 'delivered', 'delivering', 'cancelled')),
-            userId  UUID NOT NULL REFERENCES users(userId),
+            order_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+            product_id UUID NOT NULL REFERENCES products(product_id),
+            quantity_ordered INTEGER NOT NULL DEFAULT 1,
+            delivery_status TEXT NOT NULL DEFAULT 'pending' CHECK(delivery_status IN ('pending', 'delivered', 'delivering', 'cancelled')),
+            user_id  UUID NOT NULL REFERENCES users(user_id),
             address TEXT NOT NULL,
-            dateAdded TIMESTAMPZ NOT NULL DEFAULT NOW()
+            date_added TIMESTAMPZ NOT NULL DEFAULT NOW()
         )
     `);
 };
@@ -81,13 +81,13 @@ const createOrdersTable = async () => {
 const createAuthOtpTable = async () => {
   await importUuidDExtensionQuery();
   await pool.query(`
-        CREATE TABLE IF NOT EXISTS authOtps (
-            otpId UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-            otpType TEXT NOT NULL DEFAULT 'email' CHECK(otpType IN ('email', 'phoneNumber')),
+        CREATE TABLE IF NOT EXISTS auth_otps (
+            otp_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+            otp_type TEXT NOT NULL DEFAULT 'email' CHECK(otp_type IN ('email', 'phoneNumber')),
             value CHAR(6) NOT NULL,
             receiver TEXT NOT NULL,
-            expiryTime TIMESTAMPZ NOT NULL DEFAULT NOW() + INTERVAL '5 minutes',
-            dateAdded TIMESTAMPZ NOT NULL DEFAULT NOW()
+            expiry_time TIMESTAMPZ NOT NULL DEFAULT NOW() + INTERVAL '5 minutes',
+            date_added TIMESTAMPZ NOT NULL DEFAULT NOW()
         )
     `);
 };
@@ -96,12 +96,12 @@ const createReviewsTable = async () => {
   await importUuidDExtensionQuery();
   await pool.query(`
             CREATE TABLE IF NOT EXISTS reviews (
-                reviewsId UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-                userId UUID NOT NULL REFERENCES users(userId),
-                productId UUID NOT NULL REFERENCES products(productId),
+                reviews_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                user_id UUID NOT NULL REFERENCES users(user_id),
+                product_id UUID NOT NULL REFERENCES products(product_id),
                 ratings INTEGER NOT NULL,
                 comment TEXT NOT NULL,
-                dateAdded TIMESTAMPZ NOT NULL DEFAULT NOW()
+                date_added TIMESTAMPZ NOT NULL DEFAULT NOW()
             )
         `);
 };
@@ -110,19 +110,13 @@ const createCategoriesTable = async () => {
   await pool.query(`
             CREATE TABLE IF NOT EXISTS categories (
                 title TEXT PRIMARY KEY,
-                imageUrl TEXT NOT NULL,
-                dateAdded TIMESTAMPZ NOT NULL DEFAULT NOW()
+                image_url TEXT NOT NULL,
+                date_added TIMESTAMPZ NOT NULL DEFAULT NOW()
             )
         `);
 };
 
 export {
-  createUserTable,
-  createCartsTable,
-  createProductsTable,
-  createProductImagesTable,
-  createOrdersTable,
-  createAuthOtpTable,
-  createReviewsTable,
-  createCategoriesTable,
+    createAuthOtpTable, createCartsTable, createCategoriesTable, createOrdersTable, createProductImagesTable, createProductsTable, createReviewsTable, createUserTable
 };
+
