@@ -25,11 +25,16 @@ const getProducts = async (req, res) => {
             )
           ).rows[0].title;
     const formattedParams = genParamsFromArray(5, selectedCategories)
-    const fetchQuery = `SELECT product_id, product_name, price, category, vendor_id, description, COUNT(*) AS total_products
-                        FROM products 
-                        WHERE (price BETWEEN $1 AND $2) AND category IN ${formattedParams}
+    const fetchQuery = `SELECT p.product_id, p.product_name, p.price, p.description,
+                        AVG(o.ratings) AS ratings, COUNT(*) as total_products,
+                        json_agg(img.image_url) AS images
+                        FROM products AS p
+                        JOIN orders AS o ON p.product_id = o.product_id
+                        JOIN product_images AS img ON img.product_id = p.product_id
+                        WHERE (p.price BETWEEN $1 AND $2) AND p.category IN ${formattedParams}
+                        GROUP BY p.product_id, p.product_name, p.price, p.description
                         ORDER BY ${
-                          ["date_added", "price"].includes(sortBy)
+                          ["date_added", "ratings", "price"].includes(sortBy)
                             ? sortBy
                             : "date_added"
                         } ${order === "desc" ? "DESC" : "ASC"}
@@ -55,7 +60,10 @@ const getProducts = async (req, res) => {
 const getSingleProduct = async (req, res) => {
   try {
     const query =
-      "SELECT product_id, product_name, price, category, vendor_id, description FROM products WHERE product_id = $1";
+      `SELECT p.product_id, p.product_name, p.price, p.category, p.vendor_id, p.description, u.name AS vendor_name 
+        FROM products AS p
+        JOIN users AS u ON u.user_id = p.vendor_id
+        WHERE product_id = $1`;
     const product = await pool.query(query, [req.query.id]);
     res.status(200).json(product.rows[0]);
   } catch (err) {

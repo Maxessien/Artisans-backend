@@ -116,6 +116,17 @@ const createCategoriesTable = async () => {
         `);
 };
 
+const createNotificationsTable = async()=>{
+    await pool.query(`
+            CREATE TABLE IF NOT EXISTS notifications (
+                title TEXT NOT NULL,
+                icon_url TEXT NOT NULL DEFAULT 'default_utl',
+                message TEXT NOT NULL,
+                time_notified TIMESTAMPZ NOT NULL DEFAULT NOW()
+            )
+        `)
+}
+
 export {
     createAuthOtpTable, createCartsTable, createCategoriesTable, createOrdersTable, createProductImagesTable, createProductsTable, createReviewsTable, createUserTable
 };

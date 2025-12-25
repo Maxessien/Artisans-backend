@@ -24,7 +24,6 @@ const router = express.Router();
 
 router.get("/", getProducts);
 router.get("/single", getSingleProduct);
-router.get("/trending", getTrendingProducts);
 router.get("/search", searchProducts)
 router.get("/vendor", userAuthMiddleware, getVendorProduct);
 router.post(
