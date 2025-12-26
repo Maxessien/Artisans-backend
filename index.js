@@ -5,18 +5,15 @@ import productRoutes from "./routes/productRoutes.js";
 import categoriesRoutes from "./routes/categoriesRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
 import ordersRoutes from "./routes/ordersRoutes.js";
-import chatRoutes from "./routes/chatRoutes.js";
+import reviewsRoutes from "./routes/reviewsRoutes.js";
 import dotenv from "dotenv";
 import { connectDB } from "./configs/mongoDBConfig.js";
 import emailjs from "@emailjs/nodejs";
 import { app, server } from "./configs/serverConfig.js";
 import { rateLimit } from "express-rate-limit";
 import { sanitize } from "express-mongo-sanitize";
-import { auth } from "./configs/fbConfigs.js";
-import axios from "axios";
-import { Product } from "./models/productsModel.js";
 import { startEmulator } from 'cloudinary-emulator';
-import { uploader } from "./configs/cloudinaryConfigs.js";
+import logger from "./utils/logger.js";
 
 dotenv.config();
 
@@ -60,25 +57,18 @@ app.use("/product", productRoutes);
 app.use("/category", categoriesRoutes);
 app.use("/auth", authRoutes);
 app.use("/orders", ordersRoutes);
-app.use("/chat", chatRoutes);
+app.use("/reviews", reviewsRoutes);
 
 
 
-(async () => {
-  try {
-    await connectDB();
-    // const users = await auth.listUsers();
-    // const { data } = await axios.get(
-    //   "https://lasu-mart-backend.onrender.com/product"
-    // );
-    // await Product.deleteMany();
-    // const added = await Product.insertMany(data.data);
-    // console.log(added);
-    // console.log(users);
-  } catch (err) {
-    console.log(err);
-  }
-})();
+(async()=>{
+    try {
+        await pool.query("SELECT 1")
+    } catch (err) {
+        logger.log("Error connecting to postgresql", err)
+        process.kill()
+    }
+})()
 
 process.env.NODE_ENV === "development" ? startEmulator(4000) : null
 

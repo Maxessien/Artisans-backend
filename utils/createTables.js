@@ -37,7 +37,7 @@ const createCartsTable = async () => {
 
 const createProductsTable = async () => {
   await importUuidDExtensionQuery();
-  await pool.query("CREATE EXTENSION IF NOT EXISTS vector")
+  await pool.query("CREATE EXTENSION IF NOT EXISTS vector");
   await pool.query(`
     CREATE TABLE IF NOT EXISTS products (
         product_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -95,39 +95,46 @@ const createAuthOtpTable = async () => {
 const createReviewsTable = async () => {
   await importUuidDExtensionQuery();
   await pool.query(`
-            CREATE TABLE IF NOT EXISTS reviews (
-                reviews_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-                user_id UUID NOT NULL REFERENCES users(user_id),
-                product_id UUID NOT NULL REFERENCES products(product_id),
-                ratings INTEGER NOT NULL,
-                comment TEXT NOT NULL,
-                date_added TIMESTAMPZ NOT NULL DEFAULT NOW()
-            )
-        `);
+        CREATE TABLE IF NOT EXISTS reviews (
+            reviews_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+            user_id UUID NOT NULL REFERENCES users(user_id),
+            product_id UUID NOT NULL REFERENCES products(product_id),
+            ratings INTEGER NOT NULL,
+            comment TEXT NOT NULL,
+            date_added TIMESTAMPZ NOT NULL DEFAULT NOW()
+        )
+    `);
 };
 
 const createCategoriesTable = async () => {
   await pool.query(`
-            CREATE TABLE IF NOT EXISTS categories (
-                title TEXT PRIMARY KEY,
-                image_url TEXT NOT NULL,
-                date_added TIMESTAMPZ NOT NULL DEFAULT NOW()
-            )
-        `);
+        CREATE TABLE IF NOT EXISTS categories (
+            title TEXT PRIMARY KEY,
+            image_url TEXT NOT NULL,
+            date_added TIMESTAMPZ NOT NULL DEFAULT NOW()
+        )
+    `);
 };
 
-const createNotificationsTable = async()=>{
-    await pool.query(`
-            CREATE TABLE IF NOT EXISTS notifications (
-                title TEXT NOT NULL,
-                icon_url TEXT NOT NULL DEFAULT 'default_utl',
-                message TEXT NOT NULL,
-                time_notified TIMESTAMPZ NOT NULL DEFAULT NOW()
-            )
-        `)
-}
+const createNotificationsTable = async () => {
+  await pool.query(`
+        CREATE TABLE IF NOT EXISTS notifications (
+            title TEXT NOT NULL,
+            icon_url TEXT NOT NULL DEFAULT 'default_utl',
+            message TEXT NOT NULL,
+            time_notified TIMESTAMPZ NOT NULL DEFAULT NOW()
+        )
+    `);
+};
 
 export {
-    createAuthOtpTable, createCartsTable, createCategoriesTable, createOrdersTable, createProductImagesTable, createProductsTable, createReviewsTable, createUserTable
+  createAuthOtpTable,
+  createCartsTable,
+  createCategoriesTable,
+  createOrdersTable,
+  createNotificationsTable,
+  createProductImagesTable,
+  createProductsTable,
+  createReviewsTable,
+  createUserTable,
 };
-
