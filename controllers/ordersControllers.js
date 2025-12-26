@@ -3,8 +3,9 @@ import logger from "../utils/logger.js";
 import { genParamsFromArray } from "../utils/usersUtilFns.js";
 
 const placeOrders = async (req, res) => {
-  const client = pool.connect();
+  const client = await pool.connect();
   try {
+    await client.query("BEGIN");
     const bodyFlattened = req.body.map((obj = {}) => {
       const tempArr = [];
       for (const value in obj) tempArr.push(obj[value]);
@@ -46,28 +47,27 @@ const getOrderHistory = async (req, res) => {
     const {
       orderBy = "date_added",
       direction = "desc",
-      status = ["pending", "delivered", "cancelled", "delivering"],
+      status = "",
       limit = 20,
     } = req.query;
-    const orderQuery = `SELECT * FROM orders WHERE user_id = $1 AND delivery_status IN ${
-      status?.length > 0 && Array.isArray(status)
-        ? genParamsFromArray(4, status)
-        : genParamsFromArray(4, [
-            "pending",
-            "delivered",
-            "cancelled",
-            "delivering",
-          ])
+    const allowedColumns = ["date_added", "order_id"];
+    const safeOrderBy = allowedColumns.includes(orderBy)
+      ? orderBy
+      : "date_added";
+    const orderQuery = `SELECT o.order_id, o.product_id, o.quantity_ordered, o.date_added, p.product_name, p.price, i.image_url
+                        FROM orders AS o
+                        JOIN products AS p ON o.product_id = p.product_id
+                        JOIN product_images AS i ON i.product_id = p.product_id
+                        WHERE o.user_id = $1 AND o.delivery_status = $2
+                        ORDER BY ${safeOrderBy} ${
+      direction === "desc" ? "DESC" : "ASC"
     }
-          ORDER BY $2 ${direction === "desc" ? "DESC" : "ASC"}
-          LIMIT $3`;
+                        LIMIT $4`;
     const orders = await pool.query(orderQuery, [
       req.auth.uid,
+      status,
       orderBy,
       limit,
-      ...(status?.length > 0 && Array.isArray(status)
-        ? status
-        : ["pending", "delivered", "cancelled", "delivering"]),
     ]);
     logger.log("getOrderHistory result", orders);
     return res.status(200).json(orders.rows);
@@ -77,10 +77,27 @@ const getOrderHistory = async (req, res) => {
   }
 };
 
+const getSingleOrder = async (req, res) => {
+  try {
+    const query = `SELECT o.order_id, o.product_id, o.payment_method, o.address, o.quantity_ordered, o.date_added,
+                    p.product_name, p.price, i.image_url, u.display_name, u.email, u.phone_number
+                    FROM orders AS o
+                    JOIN products AS p ON o.product_id = p.product_id
+                    JOIN product_images AS i ON i.product_id = p.product_id
+                    JOIN users AS u ON o.user_id = u.user_id
+                    WHERE o.order_id = $1`;
+    const order = await pool.query(query, [req.query.orderId]);
+    return res.status(200).json(order?.rows[0] ?? []);
+  } catch (err) {
+    logger.error("Error getting single order", err);
+    return res.status(500).json(err);
+  }
+};
+
 const cancelOrder = async (req, res) => {
   try {
-    const query = `UPDATE orders SET delivery_status = $1 WHERE order_id = $2`
-    await pool.query(query, ["cancelled", req.params.orderId])
+    const query = `UPDATE orders SET delivery_status = $1 WHERE order_id = $2`;
+    await pool.query(query, ["cancelled", req.params.orderId]);
     return res.status(200).json({ message: "Order cancelled successfully" });
   } catch (err) {
     logger.error("cancelOrder error", err);
@@ -127,9 +144,9 @@ const getVendorOrders = async (req, res) => {
 const updateOrderStatus = async (req, res) => {
   try {
     const query = `UPDATE orders SET delivery_status = $1 WHERE order_id = $2
-                    AND (user_id = $3 OR product_id IN (SELECT product_id FROM products WHERE vendor_id = $3))`
-    await pool.query(query, [req.body.status, req.body.orderId, req.auth.uid])
-    return res.status(200).json({message: "Order updated successfully"});
+                    AND (user_id = $3 OR product_id IN (SELECT product_id FROM products WHERE vendor_id = $3))`;
+    await pool.query(query, [req.body.status, req.body.orderId, req.auth.uid]);
+    return res.status(200).json({ message: "Order updated successfully" });
   } catch (err) {
     logger.error("updateOrderStatus error", err);
     return res.status(500).json(err);
@@ -139,6 +156,8 @@ const updateOrderStatus = async (req, res) => {
 export {
   cancelOrder,
   getOrderHistory,
-  getVendorOrders, placeOrders, updateOrderStatus
+  getVendorOrders,
+  placeOrders,
+  updateOrderStatus,
+  getSingleOrder,
 };
-

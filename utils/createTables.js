@@ -70,6 +70,7 @@ const createOrdersTable = async () => {
             order_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
             product_id UUID NOT NULL REFERENCES products(product_id),
             quantity_ordered INTEGER NOT NULL DEFAULT 1,
+            payment_method TEXT NOT NULL CHECK('paystack', 'flutterwave', 'on delivery')
             delivery_status TEXT NOT NULL DEFAULT 'pending' CHECK(delivery_status IN ('pending', 'delivered', 'delivering', 'cancelled')),
             user_id  UUID NOT NULL REFERENCES users(user_id),
             address TEXT NOT NULL,
