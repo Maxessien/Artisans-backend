@@ -121,8 +121,11 @@ const createCategoriesTable = async () => {
 const createNotificationsTable = async () => {
   await pool.query(`
         CREATE TABLE IF NOT EXISTS notifications (
+            notification_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+            user_id UUID NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
             title TEXT NOT NULL,
             icon_url TEXT NOT NULL DEFAULT 'default_utl',
+            is_read BOOLEAN NOT NULL DEFAULT FALSE,
             message TEXT NOT NULL,
             time_notified TIMESTAMPZ NOT NULL DEFAULT NOW()
         )

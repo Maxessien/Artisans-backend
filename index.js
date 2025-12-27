@@ -6,14 +6,14 @@ import categoriesRoutes from "./routes/categoriesRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
 import ordersRoutes from "./routes/ordersRoutes.js";
 import reviewsRoutes from "./routes/reviewsRoutes.js";
+import notificationsRoutes from "./routes/notificationsRoutes.js";
 import dotenv from "dotenv";
-import { connectDB } from "./configs/mongoDBConfig.js";
 import emailjs from "@emailjs/nodejs";
 import { app, server } from "./configs/serverConfig.js";
 import { rateLimit } from "express-rate-limit";
-import { sanitize } from "express-mongo-sanitize";
 import { startEmulator } from 'cloudinary-emulator';
 import logger from "./utils/logger.js";
+import pool from "./configs/sqlConnection.js";
 
 dotenv.config();
 
@@ -42,15 +42,6 @@ emailjs.init({
 
 app.use(express.json());
 
-app.use((req, res, next) => {
-  req.body = sanitize(req.body);
-  req.params = sanitize(req.params);
-  // Mutate query object instead of replacing it
-  const cleanQuery = sanitize({ ...req.query });
-  Object.assign(req.query, cleanQuery);
-  next();
-});
-
 //express routes
 app.use("/user", userRoutes);
 app.use("/product", productRoutes);
@@ -58,6 +49,7 @@ app.use("/category", categoriesRoutes);
 app.use("/auth", authRoutes);
 app.use("/orders", ordersRoutes);
 app.use("/reviews", reviewsRoutes);
+app.use("/notifications", notificationsRoutes);
 
 
 
