@@ -23,7 +23,7 @@ const placeOrders = async (req, res) => {
       2,
       req.body.map((obj) => obj.productId)
     );
-    const addOrderQuery = `INSERT INTO orders (product_id, user_id, quantity_ordered, address) 
+    const addOrderQuery = `INSERT INTO orders (product_id, user_id, quantity_ordered, address, payment_method) 
                             VALUES ${paramStr}`;
     const deleteFromCartQuery = `DELETE FROM carts WHERE user_id = $1 AND product_id IN ${productIdParam}`;
     await client.query(addOrderQuery, bodyFlattened.flat());
@@ -80,10 +80,8 @@ const getOrderHistory = async (req, res) => {
 const getSingleOrder = async (req, res) => {
   try {
     const query = `SELECT o.order_id, o.product_id, o.payment_method, o.address, o.quantity_ordered, o.date_added,
-                    p.product_name, p.price, i.image_url, u.display_name, u.email, u.phone_number
+                    u.display_name, u.email, u.phone_number
                     FROM orders AS o
-                    JOIN products AS p ON o.product_id = p.product_id
-                    JOIN product_images AS i ON i.product_id = p.product_id
                     JOIN users AS u ON o.user_id = u.user_id
                     WHERE o.order_id = $1`;
     const order = await pool.query(query, [req.query.orderId]);

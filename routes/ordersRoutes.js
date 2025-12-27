@@ -7,7 +7,7 @@ router.use(userAuthMiddleware)
 
 //router.get("/")
 //router.get("/:id")
-router.get("/user/:userId", userAuthMiddleware, getOrderHistory)
+router.get("/user", userAuthMiddleware, getOrderHistory)
 router.post("/user", userAuthMiddleware, placeOrders)
 router.get("/user/:orderId", userAuthMiddleware, getSingleOrder)
 router.delete("/user/:orderId", userAuthMiddleware, cancelOrder)
