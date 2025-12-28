@@ -1,5 +1,4 @@
 import { auth } from "../configs/fbConfigs.js";
-import { Product } from "../models/productsModel.js";
 
 const userAuthMiddleware = async (req, res, next) => {
   const authHeader = req.headers.Authorization || req.headers.authorization;
