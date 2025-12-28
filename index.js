@@ -58,7 +58,7 @@ app.use("/notifications", notificationsRoutes);
         await pool.query("SELECT 1")
     } catch (err) {
         logger.log("Error connecting to postgresql", err)
-        process.kill()
+        process.exit(1)
     }
 })()
 

@@ -15,7 +15,7 @@ const createUserTable = async () => {
             phone_number TEXT NOT NULL,
             role TEXT NOT NULL DEFAULT 'user' CHECK(role IN ('user','admin')),
             address TEXT,
-            preferred_payment_method TEXT NOT NULL DEFAULT 'Not Set' CHECK(preferred_payment_method IN ('Nort Set', 'Paystack', 'On Delivery')),
+            preferred_payment_method TEXT NOT NULL DEFAULT 'Not Set' CHECK(preferred_payment_method IN ('Not Set', 'Paystack', 'On Delivery')),
             date_added TIMESTAMPZ NOT NULL DEFAULT NOW()
         );
     `);
@@ -70,7 +70,7 @@ const createOrdersTable = async () => {
             order_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
             product_id UUID NOT NULL REFERENCES products(product_id),
             quantity_ordered INTEGER NOT NULL DEFAULT 1,
-            payment_method TEXT NOT NULL CHECK('paystack', 'flutterwave', 'on delivery')
+            payment_method TEXT NOT NULL CHECK('paystack', 'flutterwave', 'on delivery'),
             date_delivered TIMESTAMPZ,
             delivery_status TEXT NOT NULL DEFAULT 'pending' CHECK(delivery_status IN ('pending', 'delivered', 'delivering', 'cancelled')),
             user_id  UUID NOT NULL REFERENCES users(user_id),

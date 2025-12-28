@@ -2,6 +2,7 @@ import fs from "fs";
 import multer from "multer";
 import { Product } from "../models/productsModel.js";
 import crypto from "crypto";
+import { emailjs } from '@emailjs/nodejs';
 
 const upload = multer({ dest: "uploads" });
 

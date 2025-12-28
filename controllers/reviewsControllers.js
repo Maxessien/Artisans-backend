@@ -1,5 +1,5 @@
-import pool from "../configs/sqlConnection"
-import logger from "../utils/logger"
+import pool from "../configs/sqlConnection.js"
+import logger from "../utils/logger.js"
 
 const getProductReviews = async(req, res)=>{
     try {
@@ -36,4 +36,5 @@ const deleteReview = async(req, res)=>{
     }
 }
 
-export {getProductReviews, addReview, deleteReview}
+export { addReview, deleteReview, getProductReviews }
+

@@ -1,7 +1,6 @@
 import express from "express";
 import {
   getUser,
-  getVendorInfo,
   updateUser,
 } from "../controllers/userAuthControllers.js";
 import { userAuthMiddleware } from "../middlewares/authMiddleware.js";

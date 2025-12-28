@@ -1,9 +1,9 @@
-import pool from "../configs/sqlConnection";
-import logger from "../utils/logger";
+import pool from "../configs/sqlConnection.js";
+import logger from "../utils/logger.js";
 
 const getUserNotifications = async (req, res) => {
   try {
-    const query = `SELECT * FROM notfications WHERE user_id = $1`;
+    const query = `SELECT * FROM notifications WHERE user_id = $1`;
     const notifications = await pool.query(query, [req.auth.uid]);
     return res.status(200).json(notifications?.rows || []);
   } catch (err) {
@@ -26,3 +26,4 @@ const markNotificationRead = async (req, res) => {
 };
 
 export { getUserNotifications, markNotificationRead };
+

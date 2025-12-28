@@ -3,7 +3,7 @@ import crypto from "crypto";
 import { auth } from "../configs/fbConfigs.js";
 import { findError } from "../fbAuthErrors.js";
 import logger from "../utils/logger.js";
-import pool from "./../configs/sqlConnection";
+import pool from "./../configs/sqlConnection.js";
 
 const createUser = async (req, res) => {
   try {
@@ -44,7 +44,7 @@ const getUser = async (req, res) => {
                     (SELECT COUNT(*) FROM carts WHERE carts.user_id = $1) AS total_cart_items
                     FROM users WHERE users.user_id = $1`;
     const user = await pool.query(query, [uid]);
-    return res.status(202).json(user.rows[0] || []);
+    return res.status(200).json(user.rows[0] || []);
   } catch (err) {
     logger.error("getUser error", err);
     return res.status(404).json({ message: "User not found" });
@@ -165,14 +165,19 @@ const verifyOtp = async (req, res) => {
     // Fetch existing custom claims using Admin SDK
     const userRecord = await auth.getUser(user.rows[0].user_id);
     const existingClaims = userRecord.customClaims || {};
-    const existingVerified = existingClaims.isVerified || { email: false, phone: false };
-    
+    const existingVerified = existingClaims.isVerified || {
+      email: false,
+      phone: false,
+    };
+
     // Merge with new verification
     await auth.setCustomUserClaims(user.rows[0].user_id, {
       role: "user",
       isVerified: {
         ...existingVerified,
-        ...(otp.rows[0].otp_type === "email" ? { email: true } : { phone: true }),
+        ...(otp.rows[0].otp_type === "email"
+          ? { email: true }
+          : { phone: true }),
       },
     });
     await pool.query("DELETE FROM auth_otps WHERE value = $1", [
@@ -186,6 +191,12 @@ const verifyOtp = async (req, res) => {
 };
 
 export {
-  createUser, deleteUserCookie, getUser, sendOtp, setLoggedInUserCookie, updateUser, verifyOtp, verifyUserCookie
+  createUser,
+  deleteUserCookie,
+  getUser,
+  sendOtp,
+  setLoggedInUserCookie,
+  updateUser,
+  verifyOtp,
+  verifyUserCookie,
 };
-

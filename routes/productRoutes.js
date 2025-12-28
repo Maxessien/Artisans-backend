@@ -3,7 +3,6 @@ import {
   addProduct,
   deleteProduct,
   getProducts,
-  getTrendingProducts,
   getVendorProduct,
   updateProduct,
   deleteUploadedProductImage,
@@ -15,7 +14,6 @@ import {
   requestFieldsFilter,
 } from "../middlewares/regMiddleware.js";
 import {
-  verifyVendorOwnership,
   userAuthMiddleware,
 } from "../middlewares/authMiddleware.js";
 import { upload } from "../utils/usersUtilFns.js";
@@ -53,15 +51,13 @@ router.post(
     "tags",
   ]),
   userAuthMiddleware,
-  verifyVendorOwnership,
   handleProductImageUpload,
   updateProduct
 );
-router.delete("/:id", userAuthMiddleware, verifyVendorOwnership, deleteProduct);
+router.delete("/:id", userAuthMiddleware, deleteProduct);
 router.delete(
   "/image/:id",
   userAuthMiddleware,
-  verifyVendorOwnership,
   deleteUploadedProductImage
 );
 

@@ -50,7 +50,7 @@ const getOrderHistory = async (req, res) => {
       status = "",
       limit = 20,
     } = req.query;
-    const allowedColumns = ["date_added", "order_id"];
+    const allowedColumns = ["date_added", "price"];
     const safeOrderBy = allowedColumns.includes(orderBy)
       ? orderBy
       : "date_added";
@@ -62,11 +62,10 @@ const getOrderHistory = async (req, res) => {
                         ORDER BY ${safeOrderBy} ${
       direction === "desc" ? "DESC" : "ASC"
     }
-                        LIMIT $4`;
+                        LIMIT $3`;
     const orders = await pool.query(orderQuery, [
       req.auth.uid,
       status,
-      orderBy,
       limit,
     ]);
     logger.log("getOrderHistory result", orders);

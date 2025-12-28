@@ -23,7 +23,7 @@ const getProducts = async (req, res) => {
             await pool.query(
               "SELECT COALESCE(json_agg(title), '[]') AS title FROM categories"
             )
-          ).rows[0].title;
+          ).rows[0]?.title || [];
     const formattedParams = genParamsFromArray(5, selectedCategories)
     const fetchQuery = `SELECT p.product_id, p.product_name, p.price, p.description,
                         AVG(o.ratings) AS ratings, COUNT(*) as total_products,
@@ -60,12 +60,12 @@ const getProducts = async (req, res) => {
 const getSingleProduct = async (req, res) => {
   try {
     const query =
-      `SELECT p.product_id, p.product_name, p.price, p.category, p.vendor_id, p.description, u.name AS vendor_name 
+      `SELECT p.product_id, p.product_name, p.price, p.category, p.vendor_id, p.description, u.display_name AS vendor_name 
         FROM products AS p
         JOIN users AS u ON u.user_id = p.vendor_id
         WHERE product_id = $1`;
     const product = await pool.query(query, [req.query.id]);
-    res.status(200).json(product.rows[0]);
+    return res.status(200).json(product.rows[0]);
   } catch (err) {
     logger.error("getSingleProduct error", err);
     return res.status(500).json(err);
