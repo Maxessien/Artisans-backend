@@ -26,15 +26,15 @@ const getProducts = async (req, res) => {
           ).rows[0]?.title || [];
     const formattedParams = genParamsFromArray(5, selectedCategories)
     const fetchQuery = `SELECT p.product_id, p.product_name, p.price, p.description,
-                        AVG(o.ratings) AS ratings, COUNT(*) as total_products,
+                        AVG(r.ratings) AS ratings, COUNT(*) as total_products,
                         json_agg(img.image_url) AS images
                         FROM products AS p
-                        JOIN orders AS o ON p.product_id = o.product_id
+                        JOIN reviews AS r ON p.product_id = r.product_id
                         JOIN product_images AS img ON img.product_id = p.product_id
                         WHERE (p.price BETWEEN $1 AND $2) AND p.category IN ${formattedParams}
                         GROUP BY p.product_id, p.product_name, p.price, p.description
                         ORDER BY ${
-                          ["date_added", "ratings", "price"].includes(sortBy)
+                          ["p.date_added", "ratings", "p.price"].includes(sortBy)
                             ? sortBy
                             : "date_added"
                         } ${order === "desc" ? "DESC" : "ASC"}
