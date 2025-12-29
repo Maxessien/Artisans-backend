@@ -25,6 +25,7 @@ const getProducts = async (req, res) => {
             )
           ).rows[0]?.title || [];
     const formattedParams = genParamsFromArray(5, selectedCategories)
+    logger.log("Formatted params", [formattedParams, ...selectedCategories])
     const fetchQuery = `SELECT p.product_id, p.product_name, p.price, p.description,
                         AVG(r.ratings) AS ratings, COUNT(*) as total_products,
                         json_agg(img.image_url) AS images
@@ -36,7 +37,7 @@ const getProducts = async (req, res) => {
                         ORDER BY ${
                           ["p.date_added", "ratings", "p.price"].includes(sortBy)
                             ? sortBy
-                            : "date_added"
+                            : "p.date_added"
                         } ${order === "desc" ? "DESC" : "ASC"}
                         LIMIT $3 OFFSET $4`;
     const products = await pool.query(fetchQuery, [

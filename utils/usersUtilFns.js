@@ -74,7 +74,7 @@ const genParamsFromArray = (start=1, array) => {
   let paramStr = "";
   array.forEach((_, index) => {
     paramStr += `$${
-      index + 1 === array.length ? start + index + 1 : `${start + index + 1},`
+      index + 1 === array.length ? start + index : `${start + index},`
     }`;
   });
   return `(${paramStr})`;

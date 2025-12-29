@@ -58,7 +58,7 @@ const uploadUserProfilePhoto = async (req, res) => {
     return res.status(201).json({ message: "Update successfully" });
   } catch (err) {
     logger.error("uploadUserProfilePhoto error", err);
-    const errorMessage = findError(err.code);
+    const errorMessage = findError(err?.code);
     logger.log("uploadUserProfilePhoto errorMessage", errorMessage);
     return res.status(errorMessage?.statusCode || 500).json({
       message: errorMessage?.customMessage || "Server error, try again later",

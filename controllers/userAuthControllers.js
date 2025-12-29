@@ -29,7 +29,7 @@ const createUser = async (req, res) => {
     return res.status(201).json({ message: "Account created successfully" });
   } catch (err) {
     logger.error("createUser error", err);
-    const errorMessage = findError(err.code);
+    const errorMessage = findError(err?.code);
     logger.log("createUser errorMessage", errorMessage);
     return res.status(errorMessage?.statusCode || 500).json({
       message: errorMessage?.customMessage || "Server error, try again later",
@@ -64,7 +64,7 @@ const updateUser = async (req, res) => {
     ]);
     return res.status(200).json(updatedUser.rows[0] || {});
   } catch (err) {
-    const errorMessage = findError(err.code);
+    const errorMessage = findError(err?.code);
     logger.log("updateUser errorMessage", errorMessage);
     return res.status(errorMessage?.statusCode || 500).json({
       message: errorMessage?.customMessage || "Server error, try again later",
@@ -191,12 +191,13 @@ const verifyOtp = async (req, res) => {
 };
 
 export {
-  createUser,
-  deleteUserCookie,
-  getUser,
-  sendOtp,
-  setLoggedInUserCookie,
-  updateUser,
-  verifyOtp,
-  verifyUserCookie,
+    createUser,
+    deleteUserCookie,
+    getUser,
+    sendOtp,
+    setLoggedInUserCookie,
+    updateUser,
+    verifyOtp,
+    verifyUserCookie
 };
+
