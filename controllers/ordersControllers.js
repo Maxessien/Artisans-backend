@@ -9,6 +9,7 @@ const placeOrders = async (req, res) => {
     const bodyFlattened = req.body.map((obj = {}) => {
       const tempArr = [];
       for (const value in obj) tempArr.push(obj[value]);
+      tempArr.push(req.auth.uid)
       return tempArr;
     });
     let paramStr = "";
@@ -23,12 +24,12 @@ const placeOrders = async (req, res) => {
       2,
       req.body.map((obj) => obj.productId)
     );
-    const addOrderQuery = `INSERT INTO orders (product_id, user_id, quantity_ordered, address, payment_method) 
+    const addOrderQuery = `INSERT INTO orders (product_id, quantity_ordered, address, payment_method, user_id) 
                             VALUES ${paramStr}`;
     const deleteFromCartQuery = `DELETE FROM carts WHERE user_id = $1 AND product_id IN ${productIdParam}`;
     await client.query(addOrderQuery, bodyFlattened.flat());
     await client.query(deleteFromCartQuery, [
-      req.body[0].userId,
+      req.auth.uid,
       ...req.body.map((obj) => obj.productId),
     ]);
     await client.query("COMMIT");
@@ -47,7 +48,7 @@ const getOrderHistory = async (req, res) => {
     const {
       orderBy = "date_added",
       direction = "desc",
-      status = "",
+      status = "active",
       limit = 20,
     } = req.query;
     const allowedColumns = ["date_added", "price"];

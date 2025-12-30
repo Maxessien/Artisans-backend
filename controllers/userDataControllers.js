@@ -23,11 +23,25 @@ const addToCart = async (req, res) => {
   }
 };
 
+const getCartDetails = async(req, res)=>{
+  try {
+    const query = `SELECT c.cart_id, c.product_id, c.quantity, p.product_name, p.price, jsonb_agg(i.image_url) AS images
+                    FROM carts AS c
+                    JOIN products AS p ON c.product_id = p.product_id
+                    JOIN product_images AS i ON c.product_id = i.product_id
+                    WHERE c.user_id = $1`
+    const cartDetails = pool.query(query, [req.auth.uid])
+    return res.status(200).json(cartDetails?.rows ?? [])
+  } catch (err) {
+    logger.error("Get cart details error", err)
+    return res.status(500).json({message: "Server Error"})
+  }
+}
+
 const deleteFromCart = async (req, res) => {
   try {
-    await pool.query("DELETE FROM carts WHERE product_id = $1 AND user_id = $2", [
-      req.params.productId,
-      req.params.id,
+    await pool.query("DELETE FROM carts WHERE cart_id = $1", [
+      req.params.cartId,
     ]);
     return res.status(200).json({ message: "Deleted Successfully" });
   } catch (err) {
@@ -66,5 +80,5 @@ const uploadUserProfilePhoto = async (req, res) => {
   }
 };
 
-export { addToCart, deleteFromCart, uploadUserProfilePhoto };
+export { addToCart, deleteFromCart, uploadUserProfilePhoto, getCartDetails };
 

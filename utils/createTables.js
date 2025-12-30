@@ -7,7 +7,7 @@ const createUserTable = async () => {
   await importUuidDExtensionQuery();
   await pool.query(`
         CREATE TABLE IF NOT EXISTS users (
-            user_id UUID PRIMARY KEY,
+            user_id TEXT PRIMARY KEY,
             email TEXT NOT NULL UNIQUE,
             display_name TEXT NOT NULL,
             picture_url TEXT NOT NULL DEFAULT 'default_url',
@@ -27,7 +27,7 @@ const createCartsTable = async () => {
         CREATE TABLE IF NOT EXISTS carts (
             cart_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
             product_id UUID NOT NULL REFERENCES products(product_id),
-            user_id UUID NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
+            user_id TEXT NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
             variant TEXT,
             quantity INTEGER NOT NULL DEFAULT 1,
             date_added TIMESTAMPTZ NOT NULL DEFAULT NOW()
@@ -44,7 +44,7 @@ const createProductsTable = async () => {
         product_name TEXT NOT NULL,
         price INTEGER NOT NULL,
         category TEXT REFERENCES categories(title) ON DELETE SET NULL,
-        vendor_id UUID NOT NULL REFERENCES users(user_id),
+        vendor_id TEXT NOT NULL REFERENCES users(user_id),
         description TEXT NOT NULL,
         embedding VECTOR(10),
         date_added TIMESTAMPTZ NOT NULL DEFAULT NOW()
@@ -73,7 +73,7 @@ const createOrdersTable = async () => {
             payment_method TEXT NOT NULL CHECK (payment_method IN ('paystack', 'flutterwave', 'on delivery')),
             date_delivered TIMESTAMPTZ,
             delivery_status TEXT NOT NULL DEFAULT 'pending' CHECK(delivery_status IN ('pending', 'delivered', 'delivering', 'cancelled')),
-            user_id  UUID NOT NULL REFERENCES users(user_id),
+            user_id  TEXT NOT NULL REFERENCES users(user_id),
             address TEXT NOT NULL,
             date_added TIMESTAMPTZ NOT NULL DEFAULT NOW()
         )
@@ -99,7 +99,7 @@ const createReviewsTable = async () => {
   await pool.query(`
         CREATE TABLE IF NOT EXISTS reviews (
             review_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-            user_id UUID NOT NULL REFERENCES users(user_id),
+            user_id TEXT NOT NULL REFERENCES users(user_id),
             product_id UUID NOT NULL REFERENCES products(product_id),
             ratings INTEGER NOT NULL,
             comment TEXT NOT NULL,
@@ -122,7 +122,7 @@ const createNotificationsTable = async () => {
   await pool.query(`
         CREATE TABLE IF NOT EXISTS notifications (
             notification_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-            user_id UUID NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
+            user_id TEXT NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
             title TEXT NOT NULL,
             icon_url TEXT NOT NULL DEFAULT 'default_utl',
             is_read BOOLEAN NOT NULL DEFAULT FALSE,

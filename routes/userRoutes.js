@@ -8,6 +8,7 @@ import { upload } from "../utils/usersUtilFns.js";
 import {
   addToCart,
   deleteFromCart,
+  getCartDetails,
   uploadUserProfilePhoto,
 } from "../controllers/userDataControllers.js";
 import { requestFieldsFilter } from "../middlewares/regMiddleware.js";
@@ -15,6 +16,7 @@ import { requestFieldsFilter } from "../middlewares/regMiddleware.js";
 const router = express.Router();
 
 router.get("/:id", userAuthMiddleware, getUser);
+router.get("/cart", userAuthMiddleware, getCartDetails)
 router.post("/:id",
   requestFieldsFilter([
     "displayName",
@@ -26,6 +28,6 @@ router.post(
   uploadUserProfilePhoto
 );
 router.post("/:id/cart", userAuthMiddleware, addToCart);
-router.delete("/:id/cart/:productId", userAuthMiddleware, deleteFromCart);
+router.delete("/cart/:cartId", userAuthMiddleware, deleteFromCart);
 
 export default router;

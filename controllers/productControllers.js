@@ -23,7 +23,8 @@ const getProducts = async (req, res) => {
             await pool.query(
               "SELECT COALESCE(json_agg(title), '[]') AS title FROM categories"
             )
-          ).rows[0]?.title || [];
+          )?.rows[0]?.title || [];
+	logger.log("Selected categories", selectedCategories)
     const formattedParams = genParamsFromArray(5, selectedCategories)
     logger.log("Formatted params", [formattedParams, ...selectedCategories])
     const fetchQuery = `SELECT p.product_id, p.product_name, p.price, p.description,
