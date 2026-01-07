@@ -24,34 +24,32 @@ const getProducts = async (req, res) => {
               "SELECT COALESCE(json_agg(title), '[]') AS title FROM categories"
             )
           )?.rows[0]?.title || [];
-	logger.log("Selected categories", selectedCategories)
+    const orderByCol = ["date_added", "ratings", "price"].includes(sortBy) && sortBy !== "date_added"
+                            ? (sortBy === "ratings" ? "ratings" : "p.price")
+                            : "p.date_added"
+                        
     const formattedParams = genParamsFromArray(5, selectedCategories)
-    logger.log("Formatted params", [formattedParams, ...selectedCategories])
     const fetchQuery = `SELECT p.product_id, p.product_name, p.price, p.description,
-                        AVG(r.ratings) AS ratings, COUNT(*) as total_products,
+                        AVG(r.ratings) AS ratings, (SELECT COUNT(*) FROM products) as total_products,
                         json_agg(img.image_url) AS images
                         FROM products AS p
-                        JOIN reviews AS r ON p.product_id = r.product_id
-                        JOIN product_images AS img ON img.product_id = p.product_id
+                        LEFT JOIN reviews AS r ON p.product_id = r.product_id
+                        LEFT JOIN product_images AS img ON p.product_id = img.product_id
                         WHERE (p.price BETWEEN $1 AND $2) AND p.category IN ${formattedParams}
                         GROUP BY p.product_id, p.product_name, p.price, p.description
-                        ORDER BY ${
-                          ["p.date_added", "ratings", "p.price"].includes(sortBy)
-                            ? sortBy
-                            : "p.date_added"
-                        } ${order === "desc" ? "DESC" : "ASC"}
+                        ORDER BY ${orderByCol} ${order === "desc" ? "DESC" : "ASC"}
                         LIMIT $3 OFFSET $4`;
     const products = await pool.query(fetchQuery, [
-      minPrice,
-      maxPrice,
-      limit,
-      limit * (page - 1),
+      Number(minPrice),
+      Number(maxPrice),
+      Number(limit),
+      Number(limit) * (Number(page) - 1),
       ...selectedCategories
     ]);
     logger.log("getProducts result", products);
     return res.status(200).json({
       data: products.rows || [],
-      totalPages: Math.floor(products.rows[0]?.total_products / limit) || 0,
+      totalPages: Math.ceil(Number(products.rows[0]?.total_products) / Number(limit)) || 0,
     });
   } catch (err) {
     logger.error("getProducts error", err);
