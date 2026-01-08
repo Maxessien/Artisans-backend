@@ -1,7 +1,7 @@
 import fs from "fs";
 import multer from "multer";
 import crypto from "crypto";
-import emailjs from '@emailjs/nodejs';
+import emailjs from "@emailjs/nodejs";
 
 const upload = multer({ dest: "uploads" });
 
@@ -65,12 +65,12 @@ const addedProductEmail = async (name, category, price) => {
 };
 
 /**
- * @param {Number} start - Inclusive start param index 
+ * @param {Number} start - Inclusive start param index
  * @param {Array} array - 1D Array to create SQL params from
  *
  * @returns {String} - String SQL param e.g ($1, $2, $3)
  */
-const genParamsFromArray = (start=1, array) => {
+const genParamsFromArray = (start = 1, array) => {
   let paramStr = "";
   array.forEach((_, index) => {
     paramStr += `$${
@@ -80,6 +80,16 @@ const genParamsFromArray = (start=1, array) => {
   return `(${paramStr})`;
 };
 
+/**
+ *@param {String} token - (Optional) Token to be hashed
+ * 
+ * @returns {String} Crytographically secure hashed token
+ */
+const hashTokens = (token = crypto.randomBytes(32).toString("hex")) => {
+  const hash = crypto.hash("sha256", token, "hex");
+  return hash;
+};
+
 export {
   upload,
   cleanUpStorage,
@@ -87,4 +97,5 @@ export {
   generateUUID,
   addedProductEmail,
   genParamsFromArray,
+  hashTokens,
 };

@@ -132,12 +132,15 @@ const createNotificationsTable = async () => {
     `);
 };
 
-export {
-    createAuthOtpTable,
-    createCartsTable,
-    createCategoriesTable, createNotificationsTable, createOrdersTable, createProductImagesTable,
-    createProductsTable,
-    createReviewsTable,
-    createUserTable
-};
 
+export {
+  createAuthOtpTable,
+  createCartsTable,
+  createCategoriesTable,
+  createNotificationsTable,
+  createOrdersTable,
+  createProductImagesTable,
+  createProductsTable,
+  createReviewsTable,
+  createUserTable,
+};
